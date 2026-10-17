@@ -1,4 +1,4 @@
-{
+Add-Migration InitialCreate{
   "version": "3.0",
   "defaultProvider": "cdnjs",
   "libraries": []
