@@ -5,6 +5,7 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>SoftUni_Platform_Certificate_Exchange</RootNamespace>
+    <UserSecretsId>c4411b11-7c44-4c9b-9c1f-13a3a1a1986e</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>

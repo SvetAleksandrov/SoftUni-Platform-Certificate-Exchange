@@ -28,6 +28,15 @@ builder.Services
 // Създаваме приложението
 var app = builder.Build();
 
+// Създаваме тестов Admin само в Development среда
+if (app.Environment.IsDevelopment())
+{
+    await IdentitySeeder.SeedAdminAsync(
+        app.Services,
+        app.Configuration);
+}
+
+
 // Обработка на грешки извън Development среда
 if (!app.Environment.IsDevelopment())
 {
