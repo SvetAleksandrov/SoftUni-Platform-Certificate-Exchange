@@ -1,0 +1,78 @@
+﻿@* Моделът съдържа списък от клиентски организации *@
+@model IEnumerable<SoftUni_Platform_Certificate_Exchange.Models.Organization>
+
+@{
+    // Заглавие на страницата
+    ViewData["Title"] = "Organizations";
+}
+
+<div class="container mt-4">
+
+    @* Заглавие на страницата *@
+    <h2>Client Organizations</h2>
+
+    <p class="text-muted">
+        List of registered client organizations.
+    </p>
+
+    @* Проверяваме дали има организации *@
+    @if (Model.Any())
+    {
+        <div class="table-responsive">
+
+            @* Bootstrap таблица *@
+            <table class="table table-striped table-hover">
+
+                <thead class="table-dark">
+                    <tr>
+                        <th>ID</th>
+                        <th>Organization Name</th>
+                        <th>Registration Number</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    @* Обхождаме организациите *@
+                    @foreach (var organization in Model)
+                    {
+                        <tr>
+                            <td>@organization.Id</td>
+
+                            <td>@organization.Name</td>
+
+                            <td>
+                                @(organization.RegistrationNumber ?? "N/A")
+                            </td>
+
+                            <td>
+                                @* Показваме статуса на организацията *@
+                                @if (organization.IsActive)
+                                {
+                                    <span class="badge bg-success">
+                                        Active
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-danger">
+                                        Inactive
+                                    </span>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+
+            </table>
+        </div>
+    }
+    else
+    {
+        @* Съобщение при празна таблица *@
+        <div class="alert alert-info">
+            No organizations have been registered yet.
+        </div>
+    }
+
+</div>
