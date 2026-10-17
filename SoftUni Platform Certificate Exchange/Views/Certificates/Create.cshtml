@@ -1,0 +1,107 @@
+﻿@model SoftUni_Platform_Certificate_Exchange.ViewModels.CertificateUploadViewModel
+
+@{
+    ViewData["Title"] = "Upload Certificate";
+}
+
+<div class="container mt-4">
+
+    <h2>Upload SSL/TLS Certificate</h2>
+
+    <p class="text-muted">
+        Submit a public SSL/TLS certificate for validation.
+    </p>
+
+    @* multipart/form-data позволява изпращане на файлове *@
+    <form asp-controller="Certificates"
+          asp-action="Create"
+          method="post"
+          enctype="multipart/form-data">
+
+        @* Показва общите грешки при валидация *@
+        <div asp-validation-summary="ModelOnly"
+             class="text-danger mb-3"></div>
+
+        @* Избор на активна клиентска организация *@
+        <div class="mb-3">
+            <label asp-for="OrganizationId"
+                   class="form-label"></label>
+
+            <select asp-for="OrganizationId"
+                    asp-items="ViewBag.Organizations"
+                    class="form-select">
+
+                <option value="">-- Select Organization --</option>
+
+            </select>
+
+            <span asp-validation-for="OrganizationId"
+                  class="text-danger"></span>
+        </div>
+
+        @* DNS адрес на сървъра *@
+        <div class="mb-3">
+            <label asp-for="TargetHostname"
+                   class="form-label"></label>
+
+            <input asp-for="TargetHostname"
+                   class="form-control"
+                   placeholder="api.example.com" />
+
+            <span asp-validation-for="TargetHostname"
+                  class="text-danger"></span>
+        </div>
+
+        @* Допълнително описание на сертификата *@
+        <div class="mb-3">
+            <label asp-for="Description"
+                   class="form-label"></label>
+
+            <textarea asp-for="Description"
+                      class="form-control"
+                      rows="3"
+                      placeholder="Certificate description"></textarea>
+
+            <span asp-validation-for="Description"
+                  class="text-danger"></span>
+        </div>
+
+        @* Избор на публичен SSL/TLS сертификат *@
+        <div class="mb-3">
+            <label asp-for="CertificateFile"
+                   class="form-label"></label>
+
+            <input asp-for="CertificateFile"
+                   type="file"
+                   class="form-control"
+                   accept=".cer,.crt,.pem" />
+
+            <div class="form-text">
+                Allowed formats: .cer, .crt, .pem.
+                Maximum size: 256 KB.
+                Public certificates only.
+            </div>
+
+            <span asp-validation-for="CertificateFile"
+                  class="text-danger"></span>
+        </div>
+
+        @* Изпращане на файла към CertificatesController *@
+        <button type="submit" class="btn btn-success">
+            Upload Certificate
+        </button>
+
+        @* Връщане към списъка без качване *@
+        <a asp-controller="Certificates"
+           asp-action="Index"
+           class="btn btn-secondary">
+            Cancel
+        </a>
+
+    </form>
+</div>
+
+@* Активира клиентската валидация *@
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
