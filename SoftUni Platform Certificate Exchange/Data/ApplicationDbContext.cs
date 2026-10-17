@@ -5,13 +5,14 @@ using Microsoft.EntityFrameworkCore;
 using SoftUni_Platform_Certificate_Exchange.Models;
 
 // Основен клас за комуникация с базата данни
-public class ApplicationDbContext : IdentityDbContext
+public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
 {
     // Получава настройките за SQL Server чрез Dependency Injection
     public ApplicationDbContext(
         DbContextOptions<ApplicationDbContext> options)
         : base(options)
     {
+
     }
 
     // Таблица за клиентските организации
