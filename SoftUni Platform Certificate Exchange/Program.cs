@@ -2,6 +2,9 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using SoftUni_Platform_Certificate_Exchange.Data;
 using SoftUni_Platform_Certificate_Exchange.Models;
+using SoftUni_Platform_Certificate_Exchange.Services;
+using SoftUni_Platform_Certificate_Exchange.Services.Interfaces;
+
 
 // Създаваме конфигурацията на приложението
 var builder = WebApplication.CreateBuilder(args);
@@ -31,6 +34,11 @@ builder.Services.ConfigureApplicationCookie(options =>
     options.LoginPath = "/Account/Login";
     options.AccessDeniedPath = "/Account/AccessDenied";
 });
+
+// Регистрираме услугата чрез Dependency Injection
+builder.Services.AddScoped<
+    ICertificateValidationService,
+    CertificateValidationService>();
 
 // Създаваме приложението
 var app = builder.Build();
