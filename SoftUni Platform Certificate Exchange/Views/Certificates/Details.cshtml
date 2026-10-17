@@ -1,0 +1,77 @@
+﻿@model SoftUni_Platform_Certificate_Exchange.Models.CertificateSubmission
+
+@{
+    ViewData["Title"] = "Certificate Details";
+}
+
+<div class="container mt-4">
+
+    <h2>Certificate Details</h2>
+
+    <p class="text-muted">
+        SSL/TLS certificate information and validity.
+    </p>
+
+    <div class="card">
+        <div class="card-header">
+            <strong>Certificate #@Model.Id</strong>
+        </div>
+
+        <div class="card-body">
+
+            @* Показваме данните на сертификата *@
+            <dl class="row">
+
+                <dt class="col-sm-4">Organization</dt>
+                <dd class="col-sm-8">@Model.Organization.Name</dd>
+
+                <dt class="col-sm-4">Target Hostname</dt>
+                <dd class="col-sm-8">@Model.TargetHostname</dd>
+
+                <dt class="col-sm-4">Subject</dt>
+                <dd class="col-sm-8">@(Model.Subject ?? "N/A")</dd>
+
+                <dt class="col-sm-4">Issuer</dt>
+                <dd class="col-sm-8">@(Model.Issuer ?? "N/A")</dd>
+
+                <dt class="col-sm-4">Thumbprint</dt>
+                <dd class="col-sm-8 text-break">
+                    @(Model.Thumbprint ?? "N/A")
+                </dd>
+
+                <dt class="col-sm-4">Valid From (UTC)</dt>
+                <dd class="col-sm-8">
+                    @(Model.NotBeforeUtc?.ToString("dd.MM.yyyy HH:mm")
+                                        ?? "N/A")
+                </dd>
+
+                <dt class="col-sm-4">Valid Until (UTC)</dt>
+                <dd class="col-sm-8">
+                    @(Model.NotAfterUtc?.ToString("dd.MM.yyyy HH:mm")
+                                        ?? "N/A")
+                </dd>
+
+                <dt class="col-sm-4">Status</dt>
+                <dd class="col-sm-8">
+                    <span class="badge bg-primary">
+                        @Model.Status
+                    </span>
+                </dd>
+
+                <dt class="col-sm-4">Description</dt>
+                <dd class="col-sm-8">
+                    @(Model.Description ?? "No description")
+                </dd>
+
+            </dl>
+        </div>
+    </div>
+
+    @* Връщане към списъка *@
+    <a asp-controller="Certificates"
+       asp-action="Index"
+       class="btn btn-secondary mt-3">
+        Back to Certificates
+    </a>
+
+</div>
