@@ -81,6 +81,15 @@
                                    class="btn btn-sm btn-outline-primary">
                                     Edit
                                 </a>
+
+                              @* Бутон за изтриване на организация *@
+                                <a asp-controller="Organizations"
+                                   asp-action="Delete"
+                                   asp-route-id="@organization.Id"
+                                   class="btn btn-sm btn-outline-danger">
+                                    Delete
+                                </a>
+
                             </td>
 
                         </tr>

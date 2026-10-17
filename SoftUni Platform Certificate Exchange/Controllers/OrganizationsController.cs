@@ -164,6 +164,79 @@ public class OrganizationsController : Controller
         return RedirectToAction(nameof(Index));
     }
 
+    // GET: /Organizations/Delete/1
+    // Показва страницата за потвърждение
+    [HttpGet]
+    public async Task<IActionResult> Delete(int id)
+    {
+        // Търсим организацията без проследяване на промени
+        var organization = await _context.Organizations
+            .AsNoTracking()
+            .FirstOrDefaultAsync(o => o.Id == id);
+
+        // Връщаме 404, ако организацията не съществува
+        if (organization == null)
+            return NotFound();
+
+        // Проверяваме за свързани сертификати и потребители
+        ViewBag.HasDependencies =
+            await _context.CertificateSubmissions
+                .AnyAsync(c => c.OrganizationId == id)
+            ||
+            await _context.Users
+                .AnyAsync(u => u.OrganizationId == id);
+
+        return View(organization);
+    }
+
+    // POST: /Organizations/Delete/1
+    // Изтрива организацията след потвърждение
+    [HttpPost, ActionName("Delete")]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> DeleteConfirmed(int id)
+    {
+        // Зареждаме организацията от базата данни
+        var organization = await _context.Organizations.FindAsync(id);
+
+        if (organization == null)
+            return NotFound();
+
+        // Повторна проверка за свързани записи
+        var hasCertificates = await _context.CertificateSubmissions
+            .AnyAsync(c => c.OrganizationId == id);
+
+        var hasUsers = await _context.Users
+            .AnyAsync(u => u.OrganizationId == id);
+
+        if (hasCertificates || hasUsers)
+        {
+            TempData["Error"] =
+                "Organization has related users or certificates.";
+
+            return RedirectToAction(nameof(Delete), new { id });
+        }
+
+        // Маркираме организацията за изтриване
+        _context.Organizations.Remove(organization);
+
+        try
+        {
+            // Изпълняваме DELETE заявката към SQL Server
+            await _context.SaveChangesAsync();
+        }
+        catch (DbUpdateException)
+        {
+            // Базата може да откаже изтриване при свързани записи
+            TempData["Error"] =
+                "Organization could not be deleted due to database constraints.";
+
+            return RedirectToAction(nameof(Delete), new { id });
+        }
+
+        // Връщаме потребителя към списъка
+        return RedirectToAction(nameof(Index));
+    }
+
 
 }
 

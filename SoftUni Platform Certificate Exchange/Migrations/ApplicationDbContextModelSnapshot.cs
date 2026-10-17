@@ -403,7 +403,8 @@ namespace SoftUni_Platform_Certificate_Exchange.Migrations
                 {
                     b.HasOne("SoftUni_Platform_Certificate_Exchange.Models.Organization", "Organization")
                         .WithMany()
-                        .HasForeignKey("OrganizationId");
+                        .HasForeignKey("OrganizationId")
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("Organization");
                 });
@@ -424,7 +425,7 @@ namespace SoftUni_Platform_Certificate_Exchange.Migrations
                     b.HasOne("SoftUni_Platform_Certificate_Exchange.Models.Organization", "Organization")
                         .WithMany()
                         .HasForeignKey("OrganizationId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Organization");

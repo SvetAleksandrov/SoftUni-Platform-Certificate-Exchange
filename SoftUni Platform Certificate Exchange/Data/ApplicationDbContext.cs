@@ -23,4 +23,27 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
 
     // Таблица за одобренията и отказите
     public DbSet<CertificateReview> CertificateReviews { get; set; } = null!;
+
+
+    // Конфигурираме връзките между Entity Models
+    protected override void OnModelCreating(ModelBuilder builder)
+    {
+        // Запазваме стандартните настройки на ASP.NET Identity
+        base.OnModelCreating(builder);
+
+        // Забраняваме изтриване на организация с сертификати
+        builder.Entity<CertificateSubmission>()
+            .HasOne(c => c.Organization)
+            .WithMany()
+            .HasForeignKey(c => c.OrganizationId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        // Забраняваме изтриване на организация с потребители
+        builder.Entity<ApplicationUser>()
+            .HasOne(u => u.Organization)
+            .WithMany()
+            .HasForeignKey(u => u.OrganizationId)
+            .OnDelete(DeleteBehavior.Restrict);
+    }
+
 }
