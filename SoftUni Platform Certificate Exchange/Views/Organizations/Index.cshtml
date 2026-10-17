@@ -11,6 +11,15 @@
     @* Заглавие на страницата *@
     <h2>Client Organizations</h2>
 
+
+    @* Навигация към формуляра за нова организация *@
+    <a asp-controller="Organizations"
+       asp-action="Create"
+       class="btn btn-primary mb-3">
+        + Create Organization
+    </a>
+
+
     <p class="text-muted">
         List of registered client organizations.
     </p>
@@ -29,6 +38,9 @@
                         <th>Organization Name</th>
                         <th>Registration Number</th>
                         <th>Status</th>
+                        @* Колона с действия за организацията *@
+                        <th>Actions</th>
+
                     </tr>
                 </thead>
 
@@ -60,6 +72,17 @@
                                     </span>
                                 }
                             </td>
+
+                            @* Бутон за редактиране на конкретната организация *@
+                            <td>
+                                <a asp-controller="Organizations"
+                                   asp-action="Edit"
+                                   asp-route-id="@organization.Id"
+                                   class="btn btn-sm btn-outline-primary">
+                                    Edit
+                                </a>
+                            </td>
+
                         </tr>
                     }
                 </tbody>

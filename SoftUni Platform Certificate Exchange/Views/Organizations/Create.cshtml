@@ -1,0 +1,64 @@
+﻿@model SoftUni_Platform_Certificate_Exchange.ViewModels.OrganizationCreateViewModel
+
+@{
+    ViewData["Title"] = "Create Organization";
+}
+
+<div class="container mt-4">
+
+    <h2>Create Organization</h2>
+
+    <p class="text-muted">
+        Register a new client organization.
+    </p>
+
+    @* Формуляр за създаване на организация *@
+    <form asp-controller="Organizations"
+          asp-action="Create"
+          method="post">
+
+        @* Показва общите грешки при валидация *@
+        <div asp-validation-summary="ModelOnly"
+             class="text-danger"></div>
+
+        @* Име на организацията *@
+        <div class="mb-3">
+            <label asp-for="Name" class="form-label"></label>
+
+            <input asp-for="Name" class="form-control" />
+
+            <span asp-validation-for="Name"
+                  class="text-danger"></span>
+        </div>
+
+        @* Регистрационен номер *@
+        <div class="mb-3">
+            <label asp-for="RegistrationNumber"
+                   class="form-label"></label>
+
+            <input asp-for="RegistrationNumber"
+                   class="form-control" />
+
+            <span asp-validation-for="RegistrationNumber"
+                  class="text-danger"></span>
+        </div>
+
+        @* Записване на организацията *@
+        <button type="submit" class="btn btn-success">
+            Create Organization
+        </button>
+
+        @* Връщане към списъка *@
+        <a asp-controller="Organizations"
+           asp-action="Index"
+           class="btn btn-secondary">
+            Cancel
+        </a>
+
+    </form>
+</div>
+
+@* Активира клиентската валидация *@
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
