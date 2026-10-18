@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using SoftUni_Platform_Certificate_Exchange.Models;
 using SoftUni_Platform_Certificate_Exchange.ViewModels;
 using SoftUni_Platform_Certificate_Exchange.Services.Interfaces;
+using System.Text.RegularExpressions;
 
 
 // Достъп до Controller за Admin и Client
@@ -458,6 +459,85 @@ public class CertificatesController : Controller
             nameof(Details),
             new { id = certificate.Id });
     }
+
+    // GET: /Certificates/Download/1
+    // Изтегля публичния сертификат при разрешен достъп
+    [HttpGet]
+    public async Task<IActionResult> Download(int id)
+    {
+        // Подготвяме заявката към SQL Server
+        var query = _context.CertificateSubmissions
+            .AsNoTracking()
+            .AsQueryable();
+
+        // Client може да изтегля само сертификати на своята организация
+        if (!User.IsInRole("Admin"))
+        {
+            var organizationId = await GetClientOrganizationIdAsync();
+
+            if (organizationId == null)
+                return Forbid();
+
+            // Филтрираме данните по организация
+            query = query.Where(c =>
+                c.OrganizationId == organizationId.Value);
+        }
+
+        // Търсим сертификата само сред разрешените записи
+        var certificate = await query
+            .FirstOrDefaultAsync(c => c.Id == id);
+
+        if (certificate == null)
+            return NotFound();
+
+        // Проверяваме дали има записан файл
+        if (string.IsNullOrWhiteSpace(certificate.StorageKey))
+            return NotFound();
+
+        // Допускаме само генерирано GUID име и разрешено разширение
+        if (!Regex.IsMatch(
+            certificate.StorageKey,
+            @"\A[a-fA-F0-9]{32}\.(cer|crt|pem)\z",
+            RegexOptions.IgnoreCase))
+        {
+            return NotFound();
+        }
+
+        // Използваме същата защитена директория като при Upload
+        var storagePath = Path.Combine(
+            Environment.GetFolderPath(
+                Environment.SpecialFolder.LocalApplicationData),
+            "SecureCertPortal",
+            "Certificates");
+
+        // Създаваме пълния път до файла
+        var filePath = Path.Combine(
+            storagePath,
+            certificate.StorageKey);
+
+        // Проверяваме дали файлът съществува
+        if (!System.IO.File.Exists(filePath))
+            return NotFound();
+
+        // Генерираме безопасно име за изтеглянето
+        var downloadName = $"certificate-{certificate.Id}" +
+            Path.GetExtension(certificate.StorageKey);
+
+        // Забраняваме кеширане на отговора
+        Response.Headers.CacheControl = "no-store";
+        Response.Headers["X-Content-Type-Options"] = "nosniff";
+
+        // Отваряме файла само за четене
+        // ASP.NET Core ще освободи stream-а след изпращането
+        var stream = System.IO.File.OpenRead(filePath);
+
+        // Връщаме файла като download, без директен публичен URL
+        return File(
+            stream,
+            "application/octet-stream",
+            downloadName);
+    }
+
 
 
 }

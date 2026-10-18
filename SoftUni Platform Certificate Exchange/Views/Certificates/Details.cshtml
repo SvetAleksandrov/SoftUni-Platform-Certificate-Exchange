@@ -145,6 +145,18 @@
         </a>
     }
 
+    @* Изтегляне на публичния SSL/TLS сертификат *@
+    @if (!string.IsNullOrWhiteSpace(Model.StorageKey))
+    {
+        <a asp-controller="Certificates"
+           asp-action="Download"
+           asp-route-id="@Model.Id"
+           class="btn btn-outline-success mt-3">
+            Download Certificate
+        </a>
+    }
+
+
     @* Връщане към списъка *@
     <a asp-controller="Certificates"
        asp-action="Index"
