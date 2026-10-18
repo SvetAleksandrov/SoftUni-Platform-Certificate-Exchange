@@ -69,6 +69,69 @@
         </div>
     </div>
 
+    @{
+        // Получаваме информацията за прегледа от Controller
+        var review = ViewBag.Review as CertificateReview;
+        var reviewerEmail = ViewBag.ReviewerEmail as string;
+    }
+
+    @* Показваме историята на одобрението *@
+    <div class="card mt-4">
+        <div class="card-header">
+            <strong>Certificate Review History</strong>
+        </div>
+
+        <div class="card-body">
+
+            @if (review != null)
+            {
+                <dl class="row">
+
+                    @* Решение на служителя *@
+                    <dt class="col-sm-4">Decision</dt>
+                    <dd class="col-sm-8">
+                        @if (review.Decision == CertificateReviewDecision.Approved)
+                        {
+                            <span class="badge bg-success">Approved</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-danger">Rejected</span>
+                        }
+                    </dd>
+
+                    @* Служител, извършил прегледа *@
+                    <dt class="col-sm-4">Reviewed By</dt>
+                    <dd class="col-sm-8">
+                        @(reviewerEmail ?? review.ReviewedByUserId)
+                    </dd>
+
+                    @* Дата на одобрението или отказа *@
+                    <dt class="col-sm-4">Reviewed At</dt>
+                    <dd class="col-sm-8">
+                        @review.ReviewedAtUtc.ToString("dd.MM.yyyy HH:mm") UTC
+                    </dd>
+
+                    @* Коментар към решението *@
+                    <dt class="col-sm-4">Comment</dt>
+                    <dd class="col-sm-8">
+                        @(review.Comment ?? "No comment provided.")
+                    </dd>
+
+                </dl>
+            }
+            else
+            {
+                @* Сертификатът все още не е обработен *@
+                <div class="alert alert-info mb-0">
+                    No review decision has been recorded yet.
+                </div>
+            }
+
+        </div>
+    </div>
+
+
     @* Бутон Review само за Admin и необработени сертификати *@
     @if (User.IsInRole("Admin") &&
         (Model.Status == CertificateStatus.Submitted ||

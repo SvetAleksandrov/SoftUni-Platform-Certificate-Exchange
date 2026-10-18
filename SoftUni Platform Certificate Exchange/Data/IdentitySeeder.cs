@@ -43,6 +43,23 @@ public static class IdentitySeeder
                     string.Join("; ", result.Errors.Select(e => e.Description)));
         }
 
+
+        // Създаваме роля Client, ако все още не съществува
+        if (!await roleManager.RoleExistsAsync("Client"))
+        {
+            var result = await roleManager.CreateAsync(
+                new IdentityRole("Client"));
+
+            // Проверяваме дали ролята е създадена успешно
+            if (!result.Succeeded)
+            {
+                throw new InvalidOperationException(
+                    string.Join("; ",
+                        result.Errors.Select(e => e.Description)));
+            }
+        }
+
+
         // Проверяваме дали потребителят вече съществува
         var admin = await userManager.FindByEmailAsync(email);
 

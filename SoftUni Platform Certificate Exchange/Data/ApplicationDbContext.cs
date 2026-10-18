@@ -44,6 +44,12 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
             .WithMany()
             .HasForeignKey(u => u.OrganizationId)
             .OnDelete(DeleteBehavior.Restrict);
+
+        // Един сертификат може да има само едно решение
+        builder.Entity<CertificateReview>()
+            .HasIndex(r => r.CertificateSubmissionId)
+            .IsUnique();
+
     }
 
 }

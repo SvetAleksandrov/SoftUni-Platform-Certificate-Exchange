@@ -1,0 +1,89 @@
+﻿@model SoftUni_Platform_Certificate_Exchange.ViewModels.CreateClientUserViewModel
+
+@{
+    ViewData["Title"] = "Create Client User";
+}
+
+<div class="container mt-4">
+
+    <h2>Create Client User</h2>
+    <p class="text-muted">Register a user for a client organization.</p>
+
+    @* Изпращаме данните към UsersController *@
+    <form asp-controller="Users" asp-action="Create" method="post">
+
+        <div asp-validation-summary="ModelOnly"
+             class="text-danger mb-3"></div>
+
+        @* Избор на клиентска организация *@
+        <div class="mb-3">
+            <label asp-for="OrganizationId" class="form-label">
+                Organization
+            </label>
+
+            <select asp-for="OrganizationId"
+                    asp-items="ViewBag.Organizations"
+                    class="form-select">
+                <option value="">-- Select Organization --</option>
+            </select>
+
+            <span asp-validation-for="OrganizationId"
+                  class="text-danger"></span>
+        </div>
+
+        @* Собствено име *@
+        <div class="mb-3">
+            <label asp-for="FirstName" class="form-label"></label>
+            <input asp-for="FirstName" class="form-control" />
+            <span asp-validation-for="FirstName"
+                  class="text-danger"></span>
+        </div>
+
+        @* Фамилия *@
+        <div class="mb-3">
+            <label asp-for="LastName" class="form-label"></label>
+            <input asp-for="LastName" class="form-control" />
+            <span asp-validation-for="LastName"
+                  class="text-danger"></span>
+        </div>
+
+        @* Имейл за вход *@
+        <div class="mb-3">
+            <label asp-for="Email" class="form-label"></label>
+            <input asp-for="Email" class="form-control" />
+            <span asp-validation-for="Email"
+                  class="text-danger"></span>
+        </div>
+
+        @* Начална парола *@
+        <div class="mb-3">
+            <label asp-for="Password" class="form-label"></label>
+            <input asp-for="Password" class="form-control"
+                   autocomplete="new-password" />
+            <span asp-validation-for="Password"
+                  class="text-danger"></span>
+        </div>
+
+        @* Потвърждение на паролата *@
+        <div class="mb-3">
+            <label asp-for="ConfirmPassword" class="form-label"></label>
+            <input asp-for="ConfirmPassword" class="form-control"
+                   autocomplete="new-password" />
+            <span asp-validation-for="ConfirmPassword"
+                  class="text-danger"></span>
+        </div>
+
+        <button type="submit" class="btn btn-success">
+            Create Client User
+        </button>
+
+        <a asp-controller="Organizations" asp-action="Index"
+           class="btn btn-secondary">
+            Cancel
+        </a>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

@@ -260,7 +260,8 @@ namespace SoftUni_Platform_Certificate_Exchange.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("CertificateSubmissionId");
+                    b.HasIndex("CertificateSubmissionId")
+                        .IsUnique();
 
                     b.ToTable("CertificateReviews");
                 });

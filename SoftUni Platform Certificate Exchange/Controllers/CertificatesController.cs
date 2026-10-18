@@ -66,6 +66,24 @@ public class CertificatesController : Controller
         if (certificate == null)
             return NotFound();
 
+        // Извличаме решението за конкретния сертификат
+        var review = await _context.CertificateReviews
+            .AsNoTracking()
+            .FirstOrDefaultAsync(r => r.CertificateSubmissionId == id);
+
+        // Предаваме решението към Razor View
+        ViewBag.Review = review;
+
+        // Намираме имейла на служителя, взел решението
+        ViewBag.ReviewerEmail = review == null
+            ? null
+            : await _context.Users
+                .AsNoTracking()
+                .Where(u => u.Id == review.ReviewedByUserId)
+                .Select(u => u.Email)
+                .FirstOrDefaultAsync();
+
+
         // Предаваме сертификата към Details.cshtml
         return View(certificate);
     }
