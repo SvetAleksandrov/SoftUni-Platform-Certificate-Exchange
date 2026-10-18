@@ -23,21 +23,35 @@
              class="text-danger mb-3"></div>
 
         @* Избор на активна клиентска организация *@
+
+        @* Admin избира организация, Client вижда само своята *@
         <div class="mb-3">
-            <label asp-for="OrganizationId"
-                   class="form-label"></label>
 
-            <select asp-for="OrganizationId"
-                    asp-items="ViewBag.Organizations"
-                    class="form-select">
+            <label class="form-label">Client Organization</label>
 
-                <option value="">-- Select Organization --</option>
+            @if (User.IsInRole("Admin"))
+            {
+                @* Само Admin може да избира организация *@
+                <select asp-for="OrganizationId"
+                        asp-items="ViewBag.Organizations"
+                        class="form-select">
+                    <option value="">-- Select Organization --</option>
+                </select>
 
-            </select>
+                <span asp-validation-for="OrganizationId"
+                      class="text-danger"></span>
+            }
+            else
+            {
+                @* Client вижда името, но не изпраща OrganizationId *@
+                <input type="text"
+                       class="form-control"
+                       value="@ViewBag.ClientOrganizationName"
+                       readonly />
+            }
 
-            <span asp-validation-for="OrganizationId"
-                  class="text-danger"></span>
         </div>
+
 
         @* DNS адрес на сървъра *@
         <div class="mb-3">

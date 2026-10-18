@@ -36,8 +36,8 @@
                             </li>
                         }
 
-                        @* Показваме Certificates само на администратори *@
-                        @if (User.IsInRole("Admin"))
+                        @* Certificates е достъпно за Admin и Client *@
+                        @if (User.IsInRole("Admin") || User.IsInRole("Client"))
                         {
                             <li class="nav-item">
                                 <a class="nav-link text-dark"

@@ -11,8 +11,8 @@ using SoftUni_Platform_Certificate_Exchange.ViewModels;
 using SoftUni_Platform_Certificate_Exchange.Services.Interfaces;
 
 
-// Засега само Admin има достъп до сертификатите
-[Authorize(Roles = "Admin")]
+// Достъп до Controller за Admin и Client
+[Authorize(Roles = "Admin,Client")]
 public class CertificatesController : Controller
 {
     // Достъп до базата данни
@@ -35,32 +35,87 @@ public class CertificatesController : Controller
         _userManager = userManager;
     }
 
+    // Връща организацията на текущия Client потребител
+    private async Task<int?> GetClientOrganizationIdAsync()
+    {
+        // Взимаме потребителя от ASP.NET Identity
+        var user = await _userManager.GetUserAsync(User);
+
+        // Клиентът задължително трябва да има организация
+        if (user?.OrganizationId is not int organizationId)
+            return null;
+
+        // Проверяваме дали организацията е активна
+        bool isActive = await _context.Organizations
+            .AsNoTracking()
+            .AnyAsync(o => o.Id == organizationId && o.IsActive);
+
+        // Неактивните организации нямат достъп
+        return isActive ? organizationId : null;
+    }
+
+
+
     // GET: /Certificates
-    // Показва всички сертификати
     [HttpGet]
     public async Task<IActionResult> Index()
     {
-        // Извличаме сертификатите заедно с организациите
-        var certificates = await _context.CertificateSubmissions
+        // Подготвяме заявката към SQL Server
+        var query = _context.CertificateSubmissions
             .Include(c => c.Organization)
             .AsNoTracking()
+            .AsQueryable();
+
+        // При Client филтрираме по неговата организация
+        if (!User.IsInRole("Admin"))
+        {
+            var organizationId = await GetClientOrganizationIdAsync();
+
+            if (organizationId == null)
+                return Forbid();
+
+            // Клиентът вижда само своите сертификати
+            query = query.Where(c =>
+                c.OrganizationId == organizationId.Value);
+        }
+
+        // Изпълняваме SQL заявката
+        var certificates = await query
             .OrderByDescending(c => c.CreatedAtUtc)
             .ToListAsync();
 
-        // Предаваме списъка към Index.cshtml
         return View(certificates);
     }
+
 
     // GET: /Certificates/Details/1
     // Показва информацията за конкретен сертификат
     [HttpGet]
     public async Task<IActionResult> Details(int id)
     {
-        // Търсим сертификата по ID
-        var certificate = await _context.CertificateSubmissions
+
+        // Подготвяме заявката за конкретния сертификат
+        var query = _context.CertificateSubmissions
             .Include(c => c.Organization)
             .AsNoTracking()
+            .AsQueryable();
+
+        // Ограничаваме Client до собствената организация
+        if (!User.IsInRole("Admin"))
+        {
+            var organizationId = await GetClientOrganizationIdAsync();
+
+            if (organizationId == null)
+                return Forbid();
+
+            query = query.Where(c =>
+                c.OrganizationId == organizationId.Value);
+        }
+
+        // Търсим сертификата само сред разрешените записи
+        var certificate = await query
             .FirstOrDefaultAsync(c => c.Id == id);
+
 
         // Връщаме HTTP 404, ако не съществува
         if (certificate == null)
@@ -101,14 +156,36 @@ public class CertificatesController : Controller
             "Name");
     }
 
+
     // GET: /Certificates/Create
-    // Показва формата за качване на сертификат
     [HttpGet]
     public async Task<IActionResult> Create()
     {
-        await LoadOrganizationsAsync();
+        var model = new CertificateUploadViewModel();
 
-        return View(new CertificateUploadViewModel());
+        if (User.IsInRole("Admin"))
+        {
+            // Admin може да избира клиентска организация
+            await LoadOrganizationsAsync();
+        }
+        else
+        {
+            // Client използва само собствената си организация
+            var organizationId = await GetClientOrganizationIdAsync();
+
+            if (organizationId == null)
+                return Forbid();
+
+            model.OrganizationId = organizationId.Value;
+
+            // Зареждаме името на организацията за визуализация
+            ViewBag.ClientOrganizationName = await _context.Organizations
+                .Where(o => o.Id == organizationId.Value)
+                .Select(o => o.Name)
+                .FirstOrDefaultAsync();
+        }
+
+        return View(model);
     }
 
     // POST: /Certificates/Create
@@ -119,6 +196,29 @@ public class CertificatesController : Controller
     public async Task<IActionResult> Create(
         CertificateUploadViewModel model)
     {
+
+        // За Client определяме организацията от Identity
+        if (!User.IsInRole("Admin"))
+        {
+            var organizationId = await GetClientOrganizationIdAsync();
+
+            if (organizationId == null)
+                return Forbid();
+
+            // Игнорираме OrganizationId, изпратен от браузъра
+            model.OrganizationId = organizationId.Value;
+
+            // Премахваме резултата от валидацията на входното ID
+            // Реалното ID вече е проверено на сървъра
+            ModelState.Remove(nameof(model.OrganizationId));
+
+            // Запазваме името за повторно показване при грешка
+            ViewBag.ClientOrganizationName = await _context.Organizations
+                .Where(o => o.Id == organizationId.Value)
+                .Select(o => o.Name)
+                .FirstOrDefaultAsync();
+        }
+
         // Проверяваме полетата от формуляра
         if (!ModelState.IsValid)
         {
@@ -239,8 +339,10 @@ public class CertificatesController : Controller
             new { id = certificate.Id });
     }
 
+    // Само Admin може да отваря Review страницата
     // GET: /Certificates/Review/1
     // Показва формуляра за одобрение или отказ
+    [Authorize(Roles = "Admin")]
     [HttpGet]
     public async Task<IActionResult> Review(int id)
     {
@@ -273,8 +375,10 @@ public class CertificatesController : Controller
         return View(model);
     }
 
+    // Само Admin може да отваря Review страницата
     // POST: /Certificates/Review/1
     // Обработва и записва решението на служителя
+    [Authorize(Roles = "Admin")]
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Review(
