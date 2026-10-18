@@ -9,6 +9,15 @@
     <h2>SSL/TLS Certificates</h2>
 
 
+    @* Съобщение след успешно изтриване *@
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success">
+            @TempData["Success"]
+        </div>
+    }
+
+
     @* Отваря формуляра за качване на сертификат *@
     <a asp-controller="Certificates"
        asp-action="Create"

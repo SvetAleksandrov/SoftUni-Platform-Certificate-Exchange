@@ -1,0 +1,69 @@
+﻿@model SoftUni_Platform_Certificate_Exchange.Models.CertificateSubmission
+
+@{
+    ViewData["Title"] = "Delete Certificate";
+}
+
+<div class="container mt-4">
+
+    <h2>Delete Certificate</h2>
+
+    @* Предупреждение преди изтриване *@
+    <div class="alert alert-danger">
+        Are you sure you want to delete this certificate?
+        This action cannot be undone.
+    </div>
+
+    @* Информация за сертификата *@
+    <div class="card mb-4">
+        <div class="card-body">
+
+            <dl class="row">
+
+                <dt class="col-sm-4">Certificate ID</dt>
+                <dd class="col-sm-8">@Model.Id</dd>
+
+                <dt class="col-sm-4">Hostname</dt>
+                <dd class="col-sm-8">@Model.TargetHostname</dd>
+
+                <dt class="col-sm-4">Subject</dt>
+                <dd class="col-sm-8">
+                    @(Model.Subject ?? "N/A")
+                </dd>
+
+                <dt class="col-sm-4">Status</dt>
+                <dd class="col-sm-8">@Model.Status</dd>
+
+                <dt class="col-sm-4">Uploaded File</dt>
+                <dd class="col-sm-8">
+                    @(Model.OriginalFileName ?? "N/A")
+                </dd>
+
+            </dl>
+
+        </div>
+    </div>
+
+    @* POST форма за потвърждение на изтриването *@
+    <form asp-controller="Certificates"
+          asp-action="Delete"
+          asp-route-id="@Model.Id"
+          method="post">
+
+        @Html.AntiForgeryToken()
+
+        <button type="submit" class="btn btn-danger">
+            Delete Certificate
+        </button>
+
+        @* Отказ без промяна на данните *@
+        <a asp-controller="Certificates"
+           asp-action="Details"
+           asp-route-id="@Model.Id"
+           class="btn btn-secondary">
+            Cancel
+        </a>
+
+    </form>
+
+</div>

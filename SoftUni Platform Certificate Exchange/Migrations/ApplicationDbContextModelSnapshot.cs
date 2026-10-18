@@ -415,7 +415,7 @@ namespace SoftUni_Platform_Certificate_Exchange.Migrations
                     b.HasOne("SoftUni_Platform_Certificate_Exchange.Models.CertificateSubmission", "CertificateSubmission")
                         .WithMany()
                         .HasForeignKey("CertificateSubmissionId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("CertificateSubmission");

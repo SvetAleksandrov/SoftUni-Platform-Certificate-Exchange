@@ -25,15 +25,20 @@ public class CertificatesController : Controller
     // Управление на Identity потребители
     private readonly UserManager<ApplicationUser> _userManager;
 
-    // Dependency Injection на необходимите услуги
+    // Logger за технически събития и грешки
+    private readonly ILogger<CertificatesController> _logger;
+
+    // Dependency Injection на всички необходими услуги
     public CertificatesController(
         ApplicationDbContext context,
         ICertificateValidationService validator,
-        UserManager<ApplicationUser> userManager)
+        UserManager<ApplicationUser> userManager,
+        ILogger<CertificatesController> logger)
     {
         _context = context;
         _validator = validator;
         _userManager = userManager;
+        _logger = logger;
     }
 
     // Връща организацията на текущия Client потребител
@@ -635,5 +640,96 @@ public class CertificatesController : Controller
         // Връщаме се към детайлите
         return RedirectToAction(nameof(Details), new { id });
     }
+
+    // GET: /Certificates/Delete/1
+    // Показва страницата за потвърждение
+    [HttpGet]
+    public async Task<IActionResult> Delete(int id)
+    {
+        // Зареждаме само сертификат, до който имаме достъп
+        var certificate = await FindEditableCertificateAsync(id);
+
+        if (certificate == null)
+            return NotFound();
+
+        // Изтриваме само Draft или Submitted
+        if (certificate.Status != CertificateStatus.Draft &&
+            certificate.Status != CertificateStatus.Submitted)
+            return Conflict("Certificate cannot be deleted.");
+
+        // Не позволяваме изтриване при записано решение
+        bool hasReview = await _context.CertificateReviews
+            .AnyAsync(r => r.CertificateSubmissionId == id);
+
+        if (hasReview)
+            return Conflict("Certificate has review history.");
+
+        return View(certificate);
+    }
+
+    // POST: /Certificates/Delete/1
+    // Изтрива сертификата след потвърждение
+    [HttpPost, ActionName("Delete")]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> DeleteConfirmed(int id)
+    {
+        // Проверяваме достъпа до сертификата
+        var certificate = await FindEditableCertificateAsync(id);
+
+        if (certificate == null)
+            return NotFound();
+
+        // Изтриваме само необработени сертификати
+        int deletedRows = await _context.CertificateSubmissions
+            .Where(c => c.Id == id &&
+                c.OrganizationId == certificate.OrganizationId &&
+                (c.Status == CertificateStatus.Draft ||
+                 c.Status == CertificateStatus.Submitted) &&
+                !_context.CertificateReviews.Any(r =>
+                    r.CertificateSubmissionId == c.Id))
+            .ExecuteDeleteAsync();
+
+        // Ако сертификатът е променен, отказваме изтриването
+        if (deletedRows != 1)
+            return Conflict("Certificate was changed or reviewed.");
+
+        // Проверяваме името, генерирано при Upload
+        var storageKey = certificate.StorageKey;
+
+        if (!string.IsNullOrWhiteSpace(storageKey) &&
+            System.Text.RegularExpressions.Regex.IsMatch(
+                storageKey,
+                @"\A[a-fA-F0-9]{32}\.(cer|crt|pem)\z",
+                System.Text.RegularExpressions.RegexOptions.IgnoreCase))
+        {
+            // Използваме същата директория като при Upload
+            var storagePath = Path.Combine(
+                Environment.GetFolderPath(
+                    Environment.SpecialFolder.LocalApplicationData),
+                "SecureCertPortal",
+                "Certificates");
+
+            var filePath = Path.Combine(storagePath, storageKey);
+
+            try
+            {
+                // Премахваме физическия файл, ако съществува
+                System.IO.File.Delete(filePath);
+            }
+            catch (Exception ex) when (
+                ex is IOException or UnauthorizedAccessException)
+            {
+                // Файлът остава за последващо администраторско почистване
+                _logger.LogWarning(ex,
+                    "File cleanup failed for certificate {Id}", id);
+            }
+        }
+
+        // Показваме съобщение след изтриването
+        TempData["Success"] = "Certificate submission deleted.";
+
+        return RedirectToAction(nameof(Index));
+    }
+
 
 }

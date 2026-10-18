@@ -50,6 +50,13 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
             .HasIndex(r => r.CertificateSubmissionId)
             .IsUnique();
 
+        // Забраняваме изтриването на сертификат с история на одобрение
+        builder.Entity<CertificateReview>()
+            .HasOne(r => r.CertificateSubmission)
+            .WithMany()
+            .HasForeignKey(r => r.CertificateSubmissionId)
+            .OnDelete(DeleteBehavior.Restrict);
+
     }
 
 }
