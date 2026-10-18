@@ -538,6 +538,102 @@ public class CertificatesController : Controller
             downloadName);
     }
 
+    // Намира сертификат, до който потребителят има достъп
+    private async Task<CertificateSubmission?> FindEditableCertificateAsync(int id)
+    {
+        var query = _context.CertificateSubmissions.AsQueryable();
 
+        // Client има достъп само до собствената си организация
+        if (!User.IsInRole("Admin"))
+        {
+            var organizationId = await GetClientOrganizationIdAsync();
+
+            if (organizationId == null)
+                return null;
+
+            query = query.Where(c =>
+                c.OrganizationId == organizationId.Value);
+        }
+
+        return await query.FirstOrDefaultAsync(c => c.Id == id);
+    }
+
+    // GET: /Certificates/Edit/1
+    [HttpGet]
+    public async Task<IActionResult> Edit(int id)
+    {
+        // Зареждаме сертификата с проверка за достъп
+        var certificate = await FindEditableCertificateAsync(id);
+
+        if (certificate == null)
+            return NotFound();
+
+        // Позволяваме редакция само преди обработване
+        if (certificate.Status != CertificateStatus.Draft &&
+            certificate.Status != CertificateStatus.Submitted)
+            return Conflict("Certificate cannot be edited.");
+
+        // Проверяваме дали вече има решение
+        if (await _context.CertificateReviews.AnyAsync(
+            r => r.CertificateSubmissionId == id))
+            return Conflict("Certificate has already been reviewed.");
+
+        // Подаваме hostname само за визуализация
+        ViewBag.Hostname = certificate.TargetHostname;
+
+        var model = new CertificateEditViewModel
+        {
+            Id = certificate.Id,
+            Description = certificate.Description
+        };
+
+        return View(model);
+    }
+
+    // POST: /Certificates/Edit/1
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Edit(
+        int id, CertificateEditViewModel model)
+    {
+        // Проверяваме дали ID съвпадат
+        if (id != model.Id)
+            return BadRequest();
+
+        // Зареждаме разрешения за редакция сертификат
+        var certificate = await FindEditableCertificateAsync(id);
+
+        if (certificate == null)
+            return NotFound();
+
+        // Не допускаме промяна след обработване
+        if (certificate.Status != CertificateStatus.Draft &&
+            certificate.Status != CertificateStatus.Submitted)
+            return Conflict("Certificate cannot be edited.");
+
+        // Допълнителна проверка за съществуващо решение
+        if (await _context.CertificateReviews.AnyAsync(
+            r => r.CertificateSubmissionId == id))
+            return Conflict("Certificate has already been reviewed.");
+
+        // Проверяваме Data Annotations
+        if (!ModelState.IsValid)
+        {
+            ViewBag.Hostname = certificate.TargetHostname;
+            return View(model);
+        }
+
+        // Променяме само разрешеното поле
+        certificate.Description =
+            string.IsNullOrWhiteSpace(model.Description)
+                ? null
+                : model.Description.Trim();
+
+        // EF Core изпълнява UPDATE в SQL Server
+        await _context.SaveChangesAsync();
+
+        // Връщаме се към детайлите
+        return RedirectToAction(nameof(Details), new { id });
+    }
 
 }

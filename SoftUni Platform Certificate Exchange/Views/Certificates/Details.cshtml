@@ -156,6 +156,17 @@
         </a>
     }
 
+    @* Редакция само на Draft и Submitted сертификати *@
+    @if (Model.Status == CertificateStatus.Draft ||
+        Model.Status == CertificateStatus.Submitted)
+    {
+        <a asp-controller="Certificates"
+           asp-action="Edit"
+           asp-route-id="@Model.Id"
+           class="btn btn-outline-primary mt-3">
+            Edit Certificate
+        </a>
+    }
 
     @* Връщане към списъка *@
     <a asp-controller="Certificates"

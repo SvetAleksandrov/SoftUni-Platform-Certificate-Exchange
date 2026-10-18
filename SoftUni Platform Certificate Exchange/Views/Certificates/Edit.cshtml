@@ -1,0 +1,66 @@
+﻿@model SoftUni_Platform_Certificate_Exchange.ViewModels.CertificateEditViewModel
+
+@{
+    ViewData["Title"] = "Edit Certificate";
+}
+
+<div class="container mt-4">
+
+    <h2>Edit Certificate</h2>
+
+    <p class="text-muted">
+        Update the certificate description.
+    </p>
+
+    @* Показваме hostname само за информация *@
+    <div class="alert alert-info">
+        <strong>Target Hostname:</strong>
+        @ViewBag.Hostname
+    </div>
+
+    @* Формуляр за редакция *@
+    <form asp-controller="Certificates"
+          asp-action="Edit"
+          asp-route-id="@Model.Id"
+          method="post">
+
+        @* Запазваме ID на сертификата *@
+        <input asp-for="Id" type="hidden" />
+
+        @* Показваме грешките от валидацията *@
+        <div asp-validation-summary="ModelOnly"
+             class="text-danger"></div>
+
+        @* Редактираме само описанието *@
+        <div class="mb-3">
+            <label asp-for="Description"
+                   class="form-label"></label>
+
+            <textarea asp-for="Description"
+                      class="form-control"
+                      rows="4"
+                      maxlength="500"></textarea>
+
+            <span asp-validation-for="Description"
+                  class="text-danger"></span>
+        </div>
+
+        @* Записваме промените *@
+        <button type="submit" class="btn btn-success">
+            Save Changes
+        </button>
+
+        @* Връщаме се към детайлите *@
+        <a asp-controller="Certificates"
+           asp-action="Details"
+           asp-route-id="@Model.Id"
+           class="btn btn-secondary">
+            Cancel
+        </a>
+
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
