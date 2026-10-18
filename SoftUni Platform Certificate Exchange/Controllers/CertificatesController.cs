@@ -221,4 +221,121 @@ public class CertificatesController : Controller
             new { id = certificate.Id });
     }
 
+    // GET: /Certificates/Review/1
+    // Показва формуляра за одобрение или отказ
+    [HttpGet]
+    public async Task<IActionResult> Review(int id)
+    {
+        // Зареждаме сертификата заедно с организацията
+        var certificate = await _context.CertificateSubmissions
+            .Include(c => c.Organization)
+            .AsNoTracking()
+            .FirstOrDefaultAsync(c => c.Id == id);
+
+        // Проверяваме дали сертификатът съществува
+        if (certificate == null)
+            return NotFound();
+
+        // Позволяваме преглед само на подадени сертификати
+        if (certificate.Status != CertificateStatus.Submitted &&
+            certificate.Status != CertificateStatus.UnderReview)
+        {
+            return BadRequest("Certificate is not available for review.");
+        }
+
+        // Предаваме сертификата за визуализация във View
+        ViewBag.Certificate = certificate;
+
+        // Създаваме ViewModel за формуляра
+        var model = new CertificateReviewViewModel
+        {
+            CertificateSubmissionId = certificate.Id
+        };
+
+        return View(model);
+    }
+
+    // POST: /Certificates/Review/1
+    // Обработва и записва решението на служителя
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Review(
+        int id, CertificateReviewViewModel model)
+    {
+        // Проверяваме дали ID в URL и формуляра съвпадат
+        if (id != model.CertificateSubmissionId)
+            return BadRequest();
+
+        // Зареждаме сертификата от SQL Server
+        var certificate = await _context.CertificateSubmissions
+            .Include(c => c.Organization)
+            .FirstOrDefaultAsync(c => c.Id == id);
+
+        if (certificate == null)
+            return NotFound();
+
+        // Не позволяваме повторно одобрение или отказ
+        if (certificate.Status != CertificateStatus.Submitted &&
+            certificate.Status != CertificateStatus.UnderReview)
+        {
+            return Conflict("Certificate has already been processed.");
+        }
+
+        // Проверяваме за вече съществуващо решение
+        bool reviewExists = await _context.CertificateReviews
+            .AnyAsync(r => r.CertificateSubmissionId == id);
+
+        if (reviewExists)
+            return Conflict("A review already exists.");
+
+        // Проверяваме дали решението е валидна Enum стойност
+        if (model.Decision.HasValue &&
+            !Enum.IsDefined(model.Decision.Value))
+        {
+            ModelState.AddModelError(
+                nameof(model.Decision), "Invalid decision.");
+        }
+
+        // Проверяваме Data Annotations и бизнес валидацията
+        if (!ModelState.IsValid)
+        {
+            ViewBag.Certificate = certificate;
+            return View(model);
+        }
+
+        // Получаваме ID на текущия служител
+        var userId = _userManager.GetUserId(User);
+
+        if (string.IsNullOrEmpty(userId))
+            return Unauthorized();
+
+        // Създаваме записа за одобрение или отказ
+        var review = new CertificateReview
+        {
+            CertificateSubmissionId = certificate.Id,
+            ReviewedByUserId = userId,
+            Decision = model.Decision!.Value,
+            Comment = model.Comment?.Trim(),
+            ReviewedAtUtc = DateTime.UtcNow
+        };
+
+        // Актуализираме бизнес статуса на сертификата
+        certificate.Status = model.Decision.Value ==
+            CertificateReviewDecision.Approved
+                ? CertificateStatus.Approved
+                : CertificateStatus.Rejected;
+
+        // Добавяме решението в базата
+        _context.CertificateReviews.Add(review);
+
+        // Записваме решението и новия статус в SQL Server
+        await _context.SaveChangesAsync();
+
+        // Отваряме актуализираните детайли на сертификата
+        return RedirectToAction(
+            nameof(Details),
+            new { id = certificate.Id });
+    }
+
+
 }

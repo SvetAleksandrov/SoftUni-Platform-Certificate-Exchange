@@ -1,0 +1,134 @@
+﻿@using SoftUni_Platform_Certificate_Exchange.Models
+@model SoftUni_Platform_Certificate_Exchange.ViewModels.CertificateReviewViewModel
+
+@{
+    ViewData["Title"] = "Review Certificate";
+
+    // Получаваме сертификата от Controller чрез ViewBag
+    var certificate = (CertificateSubmission)ViewBag.Certificate;
+}
+
+<div class="container mt-4">
+
+    <h2>Certificate Review</h2>
+
+    <p class="text-muted">
+        Review and approve or reject the submitted certificate.
+    </p>
+
+    @* Информация за сертификата *@
+    <div class="card mb-4">
+        <div class="card-header">
+            <strong>Certificate Information</strong>
+        </div>
+
+        <div class="card-body">
+            <dl class="row">
+                <dt class="col-sm-4">Organization</dt>
+                <dd class="col-sm-8">@certificate.Organization.Name</dd>
+
+                <dt class="col-sm-4">Hostname</dt>
+                <dd class="col-sm-8">@certificate.TargetHostname</dd>
+
+                <dt class="col-sm-4">Subject</dt>
+                <dd class="col-sm-8">@certificate.Subject</dd>
+
+                <dt class="col-sm-4">Issuer</dt>
+                <dd class="col-sm-8">@certificate.Issuer</dd>
+
+                <dt class="col-sm-4">Valid Until</dt>
+                <dd class="col-sm-8">
+                    @certificate.NotAfterUtc?.ToString("dd.MM.yyyy")
+                </dd>
+
+                <dt class="col-sm-4">Current Status</dt>
+                <dd class="col-sm-8">
+                    <span class="badge bg-secondary">
+                        @certificate.Status
+                    </span>
+                </dd>
+            </dl>
+        </div>
+    </div>
+
+    @* Формуляр за одобрение или отказ *@
+    <form asp-controller="Certificates"
+          asp-action="Review"
+          asp-route-id="@Model.CertificateSubmissionId"
+          method="post">
+
+        @* Изпращаме ID на сертификата *@
+        <input asp-for="CertificateSubmissionId" type="hidden" />
+
+        @* Показваме грешките при валидация *@
+        <div asp-validation-summary="ModelOnly"
+             class="text-danger"></div>
+
+        @* Избор на решение *@
+        <div class="mb-3">
+            <label asp-for="Decision" class="form-label"></label>
+
+            <select asp-for="Decision"
+                    asp-items="Html.GetEnumSelectList<CertificateReviewDecision>()"
+                    class="form-select">
+
+                <option value="">-- Select Decision --</option>
+            </select>
+
+            <span asp-validation-for="Decision"
+                  class="text-danger"></span>
+        </div>
+
+        @* Коментар към решението *@
+        <div class="mb-3">
+            <label asp-for="Comment" class="form-label"></label>
+
+            <textarea asp-for="Comment"
+                      class="form-control"
+                      rows="4"
+                      placeholder="Enter review comments"></textarea>
+
+            <div class="form-text">
+                A comment is required when rejecting a certificate.
+            </div>
+
+            <span asp-validation-for="Comment"
+                  class="text-danger"></span>
+        </div>
+
+        @* Записване на решението *@
+        <button type="submit" class="btn btn-primary">
+            Submit Review
+        </button>
+
+        @* Връщане към сертификата *@
+        <a asp-controller="Certificates"
+           asp-action="Details"
+           asp-route-id="@Model.CertificateSubmissionId"
+           class="btn btn-secondary">
+            Cancel
+        </a>
+
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        // При Rejected правим коментара задължителен
+        const decision = document.getElementById("Decision");
+        const comment = document.getElementById("Comment");
+
+        function updateCommentValidation() {
+            comment.required = decision.value ===
+                "@((int)CertificateReviewDecision.Rejected)";
+        }
+
+        // Проверяваме при промяна на решението
+        decision.addEventListener("change", updateCommentValidation);
+
+        // Прилагаме проверката и при зареждане на страницата
+        updateCommentValidation();
+    </script>
+}

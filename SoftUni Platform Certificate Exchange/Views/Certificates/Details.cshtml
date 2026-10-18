@@ -1,4 +1,6 @@
-﻿@model SoftUni_Platform_Certificate_Exchange.Models.CertificateSubmission
+﻿@using SoftUni_Platform_Certificate_Exchange.Models
+
+@model SoftUni_Platform_Certificate_Exchange.Models.CertificateSubmission
 
 @{
     ViewData["Title"] = "Certificate Details";
@@ -66,6 +68,19 @@
             </dl>
         </div>
     </div>
+
+    @* Бутон Review само за Admin и необработени сертификати *@
+    @if (User.IsInRole("Admin") &&
+        (Model.Status == CertificateStatus.Submitted ||
+        Model.Status == CertificateStatus.UnderReview))
+    {
+        <a asp-controller="Certificates"
+           asp-action="Review"
+           asp-route-id="@Model.Id"
+           class="btn btn-primary mt-3">
+            Review Certificate
+        </a>
+    }
 
     @* Връщане към списъка *@
     <a asp-controller="Certificates"
