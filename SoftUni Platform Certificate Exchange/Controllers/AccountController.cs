@@ -57,14 +57,22 @@ public class AccountController : Controller
             user, model.Password, model.RememberMe,
             lockoutOnFailure: true);
 
+
+        // При успешна автентикация
         if (result.Succeeded)
         {
-            // Пренасочваме само към безопасен локален адрес
+            // При временна парола отваряме Change Password
+            if (user.MustChangePassword)
+                return RedirectToAction(nameof(ChangePassword));
+
+            // Връщаме потребителя към поисканата локална страница
             if (Url.IsLocalUrl(returnUrl))
                 return LocalRedirect(returnUrl);
 
+            // Стандартно пренасочване към Home
             return RedirectToAction("Index", "Home");
         }
+
 
         if (result.IsLockedOut)
             ModelState.AddModelError("", "Account is temporarily locked.");
@@ -91,4 +99,85 @@ public class AccountController : Controller
     {
         return StatusCode(403, "Access denied.");
     }
+
+    // GET: /Account/ChangePassword
+    [HttpGet]
+    [Authorize]
+    public async Task<IActionResult> ChangePassword()
+    {
+        // Получаваме текущия потребител
+        var user = await _userManager.GetUserAsync(User);
+
+        if (user == null)
+            return Challenge();
+
+        // Ако паролата вече е сменена, отиваме към Home
+        if (!user.MustChangePassword)
+            return RedirectToAction("Index", "Home");
+
+        return View(new ChangePasswordViewModel());
+    }
+
+    // POST: /Account/ChangePassword
+    [HttpPost]
+    [Authorize]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> ChangePassword(
+        ChangePasswordViewModel model)
+    {
+        // Получаваме текущия потребител
+        var user = await _userManager.GetUserAsync(User);
+
+        if (user == null)
+            return Challenge();
+
+        if (!user.MustChangePassword)
+            return RedirectToAction("Index", "Home");
+
+        // Новата парола трябва да бъде различна
+        if (model.CurrentPassword == model.NewPassword)
+        {
+            ModelState.AddModelError(
+                nameof(model.NewPassword),
+                "New password must be different.");
+        }
+
+        // Проверяваме въведените данни
+        if (!ModelState.IsValid)
+            return View(model);
+
+        // Identity проверява старата и записва хеш на новата
+        var result = await _userManager.ChangePasswordAsync(
+            user, model.CurrentPassword, model.NewPassword);
+
+        if (!result.Succeeded)
+        {
+            foreach (var error in result.Errors)
+                ModelState.AddModelError("", error.Description);
+
+            return View(model);
+        }
+
+        // Отбелязваме, че задължителната смяна е изпълнена
+        user.MustChangePassword = false;
+
+        var updateResult = await _userManager.UpdateAsync(user);
+
+        if (!updateResult.Succeeded)
+        {
+            // Паролата вече е сменена, но флагът не е записан
+            ModelState.AddModelError("",
+                "Password changed, but account activation failed. " +
+                "Contact the administrator.");
+
+            return View(model);
+        }
+
+        // Обновяваме Login сесията след смяната
+        await _signInManager.RefreshSignInAsync(user);
+
+        // Клиентът вече може да използва Certificates
+        return RedirectToAction("Index", "Certificates");
+    }
+
 }

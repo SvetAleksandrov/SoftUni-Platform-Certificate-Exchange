@@ -71,6 +71,43 @@ app.UseRouting();
 // Проверяваме самоличността на потребителя
 app.UseAuthentication();
 
+
+// Проверяваме дали текущият потребител трябва да смени паролата
+app.Use(async (context, next) =>
+{
+    // Позволяваме страницата за смяна и Logout
+    var path = context.Request.Path.Value ?? "";
+
+    bool allowedPath =
+        path.Equals("/Account/ChangePassword",
+            StringComparison.OrdinalIgnoreCase) ||
+        path.Equals("/Account/Logout",
+            StringComparison.OrdinalIgnoreCase);
+
+    // Проверяваме само автентикирани потребители
+    if (context.User.Identity?.IsAuthenticated == true &&
+        !allowedPath)
+    {
+        // Получаваме UserManager от Dependency Injection
+        var userManager = context.RequestServices
+            .GetRequiredService<UserManager<ApplicationUser>>();
+
+        // Зареждаме актуалния потребител от базата
+        var user = await userManager.GetUserAsync(context.User);
+
+        // Блокираме всички други маршрути до смяната
+        if (user?.MustChangePassword == true)
+        {
+            context.Response.Redirect("/Account/ChangePassword");
+            return;
+        }
+    }
+
+    // Продължаваме нормалната обработка на заявката
+    await next();
+});
+
+
 // Проверяваме правата за достъп
 app.UseAuthorization();
 
