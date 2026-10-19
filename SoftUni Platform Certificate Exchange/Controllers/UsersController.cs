@@ -25,6 +25,34 @@ public class UsersController : Controller
         _userManager = userManager;
     }
 
+    // GET: /Users
+    // Показва всички потребители и техните организации
+    [HttpGet]
+    public async Task<IActionResult> Index()
+    {
+        // Извличаме потребителите от Identity таблицата
+        var users = await _context.Users
+            .AsNoTracking()
+            .OrderBy(u => u.LastName)
+            .ThenBy(u => u.FirstName)
+            .Select(u => new UserListItemViewModel
+            {
+                Id = u.Id,
+                FirstName = u.FirstName,
+                LastName = u.LastName,
+                Email = u.Email ?? string.Empty,
+                OrganizationId = u.OrganizationId,
+
+                // EF Core извлича името на свързаната организация
+                OrganizationName = u.Organization != null
+                    ? u.Organization.Name
+                    : null
+            })
+            .ToListAsync();
+
+        return View(users);
+    }
+
     // Зареждаме активните организации
     private async Task LoadOrganizationsAsync()
     {
