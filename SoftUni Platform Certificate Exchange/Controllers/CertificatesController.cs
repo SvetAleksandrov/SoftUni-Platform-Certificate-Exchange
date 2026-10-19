@@ -64,15 +64,28 @@ public class CertificatesController : Controller
 
     // GET: /Certificates
     [HttpGet]
-    public async Task<IActionResult> Index()
+
+    [HttpGet]
+    public async Task<IActionResult> Index(
+    string? organizationSearch,
+    string? hostnameSearch,
+    DateTime? validFromStart,
+    DateTime? validFromEnd,
+    DateTime? validToStart,
+    DateTime? validToEnd,
+    string statusSearch = "all",
+    DateTime? submittedFrom = null,
+    DateTime? submittedTo = null,
+    string groupBy = "none",
+    string sort = "submitted_desc")
     {
-        // Подготвяме заявката към SQL Server
+        // 1. Подготвяме заявката към базата данни
         var query = _context.CertificateSubmissions
             .Include(c => c.Organization)
             .AsNoTracking()
             .AsQueryable();
 
-        // При Client филтрираме по неговата организация
+        // 2. SECURITY: Client вижда само собствената организация
         if (!User.IsInRole("Admin"))
         {
             var organizationId = await GetClientOrganizationIdAsync();
@@ -80,18 +93,216 @@ public class CertificatesController : Controller
             if (organizationId == null)
                 return Forbid();
 
-            // Клиентът вижда само своите сертификати
             query = query.Where(c =>
                 c.OrganizationId == organizationId.Value);
         }
 
-        // Изпълняваме SQL заявката
-        var certificates = await query
-            .OrderByDescending(c => c.CreatedAtUtc)
+        // 3. SEARCH: Organization
+        organizationSearch = organizationSearch?.Trim() ?? "";
+
+        if (!string.IsNullOrWhiteSpace(organizationSearch))
+        {
+            query = query.Where(c =>
+                c.Organization.Name.Contains(organizationSearch));
+        }
+
+        // 4. SEARCH: Hostname
+        hostnameSearch = hostnameSearch?.Trim() ?? "";
+
+        if (!string.IsNullOrWhiteSpace(hostnameSearch))
+        {
+            query = query.Where(c =>
+                c.TargetHostname.Contains(hostnameSearch));
+        }
+
+        // 5. FILTER: Valid From - период на начало на валидността
+        if (validFromStart.HasValue)
+        {
+            var start = validFromStart.Value.Date;
+
+            query = query.Where(c =>
+                c.NotBeforeUtc >= start);
+        }
+
+        if (validFromEnd.HasValue)
+        {
+            var end = validFromEnd.Value.Date;
+
+            query = query.Where(c =>
+                c.NotBeforeUtc.HasValue &&
+                c.NotBeforeUtc.Value.Date <= end);
+        }
+
+        // 6. FILTER: Valid To - период на изтичане
+        if (validToStart.HasValue)
+        {
+            var start = validToStart.Value.Date;
+
+            query = query.Where(c =>
+                c.NotAfterUtc >= start);
+        }
+
+        if (validToEnd.HasValue)
+        {
+            var end = validToEnd.Value.Date;
+
+            query = query.Where(c =>
+                c.NotAfterUtc.HasValue &&
+                c.NotAfterUtc.Value.Date <= end);
+        }
+
+        // 7. FILTER: Status - използваме CertificateStatus enum
+        statusSearch = statusSearch?.Trim() ?? "all";
+
+        if (!statusSearch.Equals(
+            "all", StringComparison.OrdinalIgnoreCase))
+        {
+            // Приемаме само действителни стойности от enum
+            if (Enum.TryParse<CertificateStatus>(
+                    statusSearch, true, out var selectedStatus)
+                && Enum.IsDefined(selectedStatus))
+            {
+                query = query.Where(c =>
+                    c.Status == selectedStatus);
+
+                statusSearch = selectedStatus.ToString();
+            }
+            else
+            {
+                statusSearch = "all";
+            }
+        }
+        else
+        {
+            statusSearch = "all";
+        }
+
+        // 8. FILTER: Submitted At - период на подаване
+        if (submittedFrom.HasValue)
+        {
+            var start = submittedFrom.Value.Date;
+
+            query = query.Where(c =>
+                c.CreatedAtUtc >= start);
+        }
+
+        if (submittedTo.HasValue)
+        {
+            var end = submittedTo.Value.Date;
+
+            query = query.Where(c =>
+                c.CreatedAtUtc.Date <= end);
+        }
+
+        // 9. GROUP BY: Валидираме разрешените колони
+        groupBy = groupBy?.Trim().ToLowerInvariant() ?? "none";
+
+        string[] allowedGroups =
+        {
+        "none",
+        "organization",
+        "hostname",
+        "validfrom",
+        "validto",
+        "status",
+        "submitted"
+    };
+
+        if (!allowedGroups.Contains(groupBy))
+            groupBy = "none";
+
+        // 10. SORTING: Валидираме разрешените критерии
+        sort = sort?.Trim().ToLowerInvariant() ?? "submitted_desc";
+
+        string[] allowedSorts =
+        {
+        "organization_asc", "organization_desc",
+        "hostname_asc", "hostname_desc",
+        "validfrom_asc", "validfrom_desc",
+        "validto_asc", "validto_desc",
+        "status_asc", "status_desc",
+        "submitted_asc", "submitted_desc"
+    };
+
+        if (!allowedSorts.Contains(sort))
+            sort = "submitted_desc";
+
+        // 11. Сортираме в SQL Server
+        var orderedQuery = sort switch
+        {
+            "organization_asc" => query
+                .OrderBy(c => c.Organization.Name),
+
+            "organization_desc" => query
+                .OrderByDescending(c => c.Organization.Name),
+
+            "hostname_asc" => query
+                .OrderBy(c => c.TargetHostname),
+
+            "hostname_desc" => query
+                .OrderByDescending(c => c.TargetHostname),
+
+            "validfrom_asc" => query
+                .OrderBy(c => c.NotBeforeUtc),
+
+            "validfrom_desc" => query
+                .OrderByDescending(c => c.NotBeforeUtc),
+
+            "validto_asc" => query
+                .OrderBy(c => c.NotAfterUtc),
+
+            "validto_desc" => query
+                .OrderByDescending(c => c.NotAfterUtc),
+
+            "status_asc" => query
+                .OrderBy(c => c.Status),
+
+            "status_desc" => query
+                .OrderByDescending(c => c.Status),
+
+            "submitted_asc" => query
+                .OrderBy(c => c.CreatedAtUtc),
+
+            // По подразбиране: най-новите заявки първо
+            _ => query.OrderByDescending(c => c.CreatedAtUtc)
+        };
+
+        // 12. Изпълняваме заявката
+        // ID осигурява стабилен ред при равни стойности
+        var certificates = await orderedQuery
+            .ThenBy(c => c.Id)
             .ToListAsync();
+
+        // 13. Връщаме критериите обратно към Razor
+        ViewBag.OrganizationSearch = organizationSearch;
+        ViewBag.HostnameSearch = hostnameSearch;
+
+        ViewBag.ValidFromStart =
+            validFromStart?.ToString("yyyy-MM-dd") ?? "";
+
+        ViewBag.ValidFromEnd =
+            validFromEnd?.ToString("yyyy-MM-dd") ?? "";
+
+        ViewBag.ValidToStart =
+            validToStart?.ToString("yyyy-MM-dd") ?? "";
+
+        ViewBag.ValidToEnd =
+            validToEnd?.ToString("yyyy-MM-dd") ?? "";
+
+        ViewBag.StatusSearch = statusSearch;
+
+        ViewBag.SubmittedFrom =
+            submittedFrom?.ToString("yyyy-MM-dd") ?? "";
+
+        ViewBag.SubmittedTo =
+            submittedTo?.ToString("yyyy-MM-dd") ?? "";
+
+        ViewBag.GroupBy = groupBy;
+        ViewBag.Sort = sort;
 
         return View(certificates);
     }
+
 
 
     // GET: /Certificates/Details/1

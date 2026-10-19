@@ -73,9 +73,12 @@
     </div>
 
     @* Всички филтри са в един GET формуляр *@
+
     <form id="userFilters"
+          data-live-filters
           action="@Url.Action("Index", "Users")"
           method="get">
+
 
         @* Текущото сортиране - променя се от стрелките *@
         <input type="hidden"
@@ -87,7 +90,7 @@
                     align-items-center mb-3">
 
             <span>
-                Showing <strong>@users.Count</strong> user(s)
+                Showing <strong data-live-count>@users.Count</strong> user(s)
             </span>
 
             @* Group By падащо меню *@
@@ -99,8 +102,7 @@
 
                 <select id="groupBy"
                         name="groupBy"
-                        class="form-select form-select-sm"
-                        onchange="this.form.requestSubmit()">
+                        class="form-select form-select-sm">
 
                     <option value="none"
                             selected="@(groupBy == "none")">

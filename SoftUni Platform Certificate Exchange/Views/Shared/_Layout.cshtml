@@ -104,6 +104,12 @@
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
+
+    @* Общ Live Search за Organizations, Users и Certificates *@
+    <script src="~/js/live-table-filters.js"
+            asp-append-version="true"
+            defer></script>
+
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

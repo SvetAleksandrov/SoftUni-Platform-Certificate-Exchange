@@ -1,15 +1,104 @@
-﻿@model IEnumerable<SoftUni_Platform_Certificate_Exchange.Models.CertificateSubmission>
+﻿@using SoftUni_Platform_Certificate_Exchange.Models
+@model IEnumerable<CertificateSubmission>
 
 @{
-    ViewData["Title"] = "Certificates";
+    ViewData["Title"] = "Certificate Management";
+
+    // 1. Възстановяваме филтрите от Controller
+    string organizationSearch =
+        ViewBag.OrganizationSearch as string ?? "";
+
+    string hostnameSearch =
+        ViewBag.HostnameSearch as string ?? "";
+
+    string validFromStart =
+        ViewBag.ValidFromStart as string ?? "";
+
+    string validFromEnd =
+        ViewBag.ValidFromEnd as string ?? "";
+
+    string validToStart =
+        ViewBag.ValidToStart as string ?? "";
+
+    string validToEnd =
+        ViewBag.ValidToEnd as string ?? "";
+
+    string statusSearch =
+        ViewBag.StatusSearch as string ?? "all";
+
+    string submittedFrom =
+        ViewBag.SubmittedFrom as string ?? "";
+
+    string submittedTo =
+        ViewBag.SubmittedTo as string ?? "";
+
+    string groupBy = ViewBag.GroupBy as string ?? "none";
+    string sort = ViewBag.Sort as string ?? "submitted_desc";
+
+    var certificates = Model.ToList();
+
+    // 2. Изчисляваме следващата посока за всяка колона
+    string organizationNext = sort == "organization_asc"
+        ? "organization_desc" : "organization_asc";
+
+    string hostnameNext = sort == "hostname_asc"
+        ? "hostname_desc" : "hostname_asc";
+
+    string validFromNext = sort == "validfrom_asc"
+        ? "validfrom_desc" : "validfrom_asc";
+
+    string validToNext = sort == "validto_asc"
+        ? "validto_desc" : "validto_asc";
+
+    string statusNext = sort == "status_asc"
+        ? "status_desc" : "status_asc";
+
+    string submittedNext = sort == "submitted_asc"
+        ? "submitted_desc" : "submitted_asc";
+
+    // 3. Определяме името на групиращата колона
+    string groupLabel = groupBy switch
+    {
+        "organization" => "Organization",
+        "hostname" => "Hostname",
+        "validfrom" => "Valid From",
+        "validto" => "Valid To",
+        "status" => "Status",
+        "submitted" => "Submitted At",
+        _ => ""
+    };
+
+    // 4. Групираме филтрираните резултати за визуализация
+    // При датите групираме по календарен ден, не по час
+    var groups = certificates.GroupBy(c => groupBy switch
+    {
+        "organization" => c.Organization.Name,
+        "hostname" => c.TargetHostname,
+        "validfrom" => c.NotBeforeUtc?.ToString("yyyy-MM-dd") ?? "N/A",
+        "validto" => c.NotAfterUtc?.ToString("yyyy-MM-dd") ?? "N/A",
+        "status" => c.Status.ToString(),
+        "submitted" => c.CreatedAtUtc.ToString("yyyy-MM-dd"),
+        _ => "All"
+    }).ToList();
 }
 
-<div class="container mt-4">
+<div class="container-fluid mt-4">
 
-    <h2>SSL/TLS Certificates</h2>
+    <h2>Certificate Management</h2>
 
+    <p class="text-muted">
+        Search, filter, sort and group SSL/TLS certificate submissions.
+    </p>
 
-    @* Съобщение след успешно изтриване *@
+    @* Административни и клиентски действия *@
+    <div class="mb-4">
+        <a asp-controller="Certificates"
+           asp-action="Create"
+           class="btn btn-primary">
+            + Upload Certificate
+        </a>
+    </div>
+
     @if (TempData["Success"] != null)
     {
         <div class="alert alert-success">
@@ -17,81 +106,379 @@
         </div>
     }
 
+    @* Общ GET формуляр - запазва всички критерии *@
+    <form id="certificateFilters"
+          data-live-filters
+          action="@Url.Action("Index", "Certificates")"
+          method="get">
 
-    @* Отваря формуляра за качване на сертификат *@
-    <a asp-controller="Certificates"
-       asp-action="Create"
-       class="btn btn-primary mb-3">
-        + Upload Certificate
-    </a>
+        @* Стойността се променя при натискане на стрелка *@
+        <input type="hidden"
+               id="sortValue"
+               name="sort"
+               value="@sort" />
 
+        <div class="d-flex justify-content-between
+                    align-items-center mb-3 flex-wrap gap-2">
 
-    <p class="text-muted">
-        Manage certificates submitted by client organizations.
-    </p>
+            <span>
+                Showing <strong data-live-count>@certificates.Count</strong>
+                certificate(s)
+            </span>
 
-    @* Проверяваме дали има сертификати *@
-    @if (Model.Any())
-    {
+            @* Group By - всички налични колони *@
+            <div class="d-flex align-items-center gap-2">
+
+                <label for="groupBy" class="mb-0">
+                    Group By
+                </label>
+
+                <select id="groupBy"
+                        name="groupBy"
+                        class="form-select form-select-sm"
+                        style="width: 170px;">
+
+                    <option value="none"
+                            selected="@(groupBy == "none")">
+                        No Grouping
+                    </option>
+
+                    <option value="organization"
+                            selected="@(groupBy == "organization")">
+                        Organization
+                    </option>
+
+                    <option value="hostname"
+                            selected="@(groupBy == "hostname")">
+                        Hostname
+                    </option>
+
+                    <option value="validfrom"
+                            selected="@(groupBy == "validfrom")">
+                        Valid From
+                    </option>
+
+                    <option value="validto"
+                            selected="@(groupBy == "validto")">
+                        Valid To
+                    </option>
+
+                    <option value="status"
+                            selected="@(groupBy == "status")">
+                        Status
+                    </option>
+
+                    <option value="submitted"
+                            selected="@(groupBy == "submitted")">
+                        Submitted At
+                    </option>
+
+                </select>
+
+                <a asp-action="Index"
+                   class="btn btn-sm btn-outline-secondary">
+                    Reset
+                </a>
+            </div>
+        </div>
+
+        @* Позволяваме хоризонтално превъртане на широката таблица *@
         <div class="table-responsive">
 
-            <table class="table table-striped table-hover">
+            <table class="table table-striped table-hover align-middle"
+                   style="min-width: 1350px;">
 
-                <thead class="table-dark">
-                    <tr>
-                        <th>ID</th>
-                        <th>Organization</th>
-                        <th>Hostname</th>
-                        <th>Valid Until</th>
-                        <th>Status</th>
+                <thead>
+
+                    @* Първи ред - заглавия и сортиране *@
+                    <tr class="table-dark">
+
+                        <th>
+                            <button type="submit"
+                                    class="btn btn-link text-white text-decoration-none p-0"
+                                    onclick="document.getElementById('sortValue').value='@organizationNext'">
+
+                                Organization
+                                @(sort == "organization_asc" ? "↑" :
+                                                                sort == "organization_desc" ? "↓" : "↕")
+                            </button>
+                        </th>
+
+                        <th>
+                            <button type="submit"
+                                    class="btn btn-link text-white text-decoration-none p-0"
+                                    onclick="document.getElementById('sortValue').value='@hostnameNext'">
+
+                                Hostname
+                                @(sort == "hostname_asc" ? "↑" :
+                                                                sort == "hostname_desc" ? "↓" : "↕")
+                            </button>
+                        </th>
+
+                        <th>
+                            <button type="submit"
+                                    class="btn btn-link text-white text-decoration-none p-0"
+                                    onclick="document.getElementById('sortValue').value='@validFromNext'">
+
+                                Valid From
+                                @(sort == "validfrom_asc" ? "↑" :
+                                                                sort == "validfrom_desc" ? "↓" : "↕")
+                            </button>
+                        </th>
+
+                        <th>
+                            <button type="submit"
+                                    class="btn btn-link text-white text-decoration-none p-0"
+                                    onclick="document.getElementById('sortValue').value='@validToNext'">
+
+                                Valid To
+                                @(sort == "validto_asc" ? "↑" :
+                                                                sort == "validto_desc" ? "↓" : "↕")
+                            </button>
+                        </th>
+
+                        <th>
+                            <button type="submit"
+                                    class="btn btn-link text-white text-decoration-none p-0"
+                                    onclick="document.getElementById('sortValue').value='@statusNext'">
+
+                                Status
+                                @(sort == "status_asc" ? "↑" :
+                                                                sort == "status_desc" ? "↓" : "↕")
+                            </button>
+                        </th>
+
+                        <th>
+                            <button type="submit"
+                                    class="btn btn-link text-white text-decoration-none p-0"
+                                    onclick="document.getElementById('sortValue').value='@submittedNext'">
+
+                                Submitted At
+                                @(sort == "submitted_asc" ? "↑" :
+                                                                sort == "submitted_desc" ? "↓" : "↕")
+                            </button>
+                        </th>
+
                         <th>Actions</th>
+                    </tr>
+
+                    @* Втори ред - Search и Date Filters *@
+                    <tr class="table-light">
+
+                        @* Organization Search *@
+                        <th>
+                            <input type="search"
+                                   name="organizationSearch"
+                                   value="@organizationSearch"
+                                   class="form-control form-control-sm"
+                                   placeholder="Search organization"
+                                   aria-label="Search organization" />
+                        </th>
+
+                        @* Hostname Search *@
+                        <th>
+                            <input type="search"
+                                   name="hostnameSearch"
+                                   value="@hostnameSearch"
+                                   class="form-control form-control-sm"
+                                   placeholder="Search hostname"
+                                   aria-label="Search hostname" />
+                        </th>
+
+                        @* Valid From: начална и крайна дата *@
+                        <th>
+                            <div class="d-flex flex-column gap-1">
+
+                                <input type="date"
+                                       name="validFromStart"
+                                       value="@validFromStart"
+                                       class="form-control form-control-sm"
+                                       aria-label="Valid from start date"
+                                       title="From date" />
+
+                                <input type="date"
+                                       name="validFromEnd"
+                                       value="@validFromEnd"
+                                       class="form-control form-control-sm"
+                                       aria-label="Valid from end date"
+                                       title="To date" />
+                            </div>
+                        </th>
+
+                        @* Valid To: период на изтичане *@
+                        <th>
+                            <div class="d-flex flex-column gap-1">
+
+                                <input type="date"
+                                       name="validToStart"
+                                       value="@validToStart"
+                                       class="form-control form-control-sm"
+                                       aria-label="Expiry period start"
+                                       title="From date" />
+
+                                <input type="date"
+                                       name="validToEnd"
+                                       value="@validToEnd"
+                                       class="form-control form-control-sm"
+                                       aria-label="Expiry period end"
+                                       title="To date" />
+                            </div>
+                        </th>
+
+                        @* Status - избор от enum стойностите *@
+                        <th>
+                            <select name="statusSearch"
+                                    class="form-select form-select-sm"
+                                    aria-label="Filter certificate status">
+
+                                <option value="all"
+                                        selected="@(statusSearch == "all")">
+                                    All Statuses
+                                </option>
+
+                                @foreach (var certificateStatus in
+                                                                Enum.GetValues<CertificateStatus>())
+                                {
+                                    <option value="@certificateStatus"
+                                            selected="@(statusSearch == certificateStatus.ToString())">
+                                        @certificateStatus
+                                    </option>
+                                }
+                            </select>
+                        </th>
+
+                        @* Submitted At: период на подаване *@
+                        <th>
+                            <div class="d-flex flex-column gap-1">
+
+                                <input type="date"
+                                       name="submittedFrom"
+                                       value="@submittedFrom"
+                                       class="form-control form-control-sm"
+                                       aria-label="Submitted from date"
+                                       title="From date" />
+
+                                <input type="date"
+                                       name="submittedTo"
+                                       value="@submittedTo"
+                                       class="form-control form-control-sm"
+                                       aria-label="Submitted to date"
+                                       title="To date" />
+                            </div>
+                        </th>
+
+                        @* Бутонът прилага всички текущи филтри *@
+                        <th>
+                            <button type="submit"
+                                    class="btn btn-sm btn-outline-primary">
+                                Search
+                            </button>
+                        </th>
+
                     </tr>
                 </thead>
 
                 <tbody>
-                    @* Обхождаме сертификатите от SQL Server *@
-                    @foreach (var certificate in Model)
+
+                    @* Няма резултати след филтриране *@
+                    @if (!certificates.Any())
                     {
                         <tr>
-                            <td>@certificate.Id</td>
-
-                            <td>@certificate.Organization.Name</td>
-
-                            <td>@certificate.TargetHostname</td>
-
-                            <td>
-                                @(certificate.NotAfterUtc?.ToString("dd.MM.yyyy")
-                                                        ?? "N/A")
-                    </td>
-
-                            <td>
-                                <span class="badge bg-secondary">
-                                    @certificate.Status
-                                </span>
-                            </td>
-
-                            <td>
-                                @* Отваря детайлите на сертификата *@
-                                <a asp-controller="Certificates"
-                                   asp-action="Details"
-                                   asp-route-id="@certificate.Id"
-                                   class="btn btn-sm btn-outline-primary">
-                                    Details
-                                </a>
+                            <td colspan="7" class="text-center py-4">
+                                No certificates match the selected filters.
                             </td>
                         </tr>
-                                }
+                    }
+
+                    @* Всяка група се визуализира в общата таблица *@
+                    @foreach (var group in groups)
+                    {
+                        @if (groupBy != "none")
+                        {
+                            <tr class="table-secondary">
+                                <th colspan="7">
+                                    @groupLabel — @group.Key
+                                    (@group.Count())
+                                </th>
+                            </tr>
+                        }
+
+                        @foreach (var certificate in group)
+                        {
+                            <tr>
+
+                                <td>
+                                    @certificate.Organization.Name
+                                </td>
+
+                                <td>
+                                    @certificate.TargetHostname
+                                </td>
+
+                                <td>
+                                    @(certificate.NotBeforeUtc?.ToString("dd.MM.yyyy") ?? "N/A")
+                                </td>
+
+                                <td>
+                                    @(certificate.NotAfterUtc?.ToString("dd.MM.yyyy") ?? "N/A")
+                                </td>
+
+                                <td>
+                                    @switch (certificate.Status)
+                                    {
+                                        case CertificateStatus.Approved:
+                                            <span class="badge bg-success">
+                                                Approved
+                                            </span>
+                                            break;
+
+                                        case CertificateStatus.Rejected:
+                                            <span class="badge bg-danger">
+                                                Rejected
+                                            </span>
+                                            break;
+
+                                        case CertificateStatus.UnderReview:
+                                            <span class="badge bg-info text-dark">
+                                                Under Review
+                                            </span>
+                                            break;
+
+                                        case CertificateStatus.Submitted:
+                                            <span class="badge bg-primary">
+                                                Submitted
+                                            </span>
+                                            break;
+
+                                        default:
+                                            <span class="badge bg-secondary">
+                                                Draft
+                                            </span>
+                                            break;
+                                    }
+                                </td>
+
+                                <td>
+                                    @certificate.CreatedAtUtc.ToString("dd.MM.yyyy HH:mm")
+                                    <small class="text-muted">UTC</small>
+                                </td>
+
+                                <td>
+                                    <a asp-controller="Certificates"
+                                       asp-action="Details"
+                                       asp-route-id="@certificate.Id"
+                                       class="btn btn-sm btn-outline-primary">
+                                        Details
+                                    </a>
+                                </td>
+
+                            </tr>
+                        }
+                    }
+
                 </tbody>
 
             </table>
         </div>
-    }
-    else
-    {
-        @* Съобщение при липса на сертификати *@
-        <div class="alert alert-info">
-            No certificates have been submitted yet.
-        </div>
-    }
-
+    </form>
 </div>

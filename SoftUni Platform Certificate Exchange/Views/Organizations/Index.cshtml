@@ -76,7 +76,12 @@
     </div>
 
     @* Един GET формуляр за всички филтри в таблицата *@
-    <form asp-action="Index" method="get">
+
+    <form id="organizationFilters"
+          data-live-filters
+          action="@Url.Action("Index", "Organizations")"
+          method="get">
+
 
         @* Запазваме избраното сортиране *@
         <input type="hidden" name="sort" value="@sort" />
@@ -85,7 +90,7 @@
                     align-items-center mb-3">
 
             <div>
-                Showing <strong>@organizations.Count</strong>
+                Showing <strong data-live-count>@organizations.Count</strong>
                 organization(s)
             </div>
 
@@ -97,8 +102,7 @@
 
                 <select id="groupBy"
                         name="groupBy"
-                        class="form-select form-select-sm"
-                        onchange="this.form.requestSubmit()">
+                        class="form-select form-select-sm">
 
                     <option value="none"
                             selected="@(groupBy == "none")">
@@ -238,8 +242,7 @@
                         <th>
                             <select name="statusSearch"
                                     class="form-select form-select-sm"
-                                    aria-label="Filter status"
-                                    onchange="this.form.requestSubmit()">
+                                    aria-label="Filter status">
 
                                 <option value="all"
                                         selected="@(statusSearch == "all")">
