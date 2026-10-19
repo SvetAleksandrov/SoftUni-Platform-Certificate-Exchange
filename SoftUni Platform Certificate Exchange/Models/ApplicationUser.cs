@@ -11,6 +11,13 @@ public class ApplicationUser : IdentityUser
     // Фамилия на потребителя
     public string LastName { get; set; } = string.Empty;
 
+
+    // Задължителна смяна на паролата при първоначален Login
+    // true  = потребителят трябва да смени паролата
+    // false = потребителят може да използва приложението
+    public bool MustChangePassword { get; set; } = false;
+
+
     // Идентификатор на клиентската организация (Foreign Key)
     // Nullable, защото вътрешните служители нямат клиентска организация
     public int? OrganizationId { get; set; }
