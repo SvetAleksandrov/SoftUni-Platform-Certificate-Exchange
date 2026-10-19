@@ -97,6 +97,14 @@
                                     Delete
                                 </a>
 
+                                @* Показва организацията и свързаните потребители *@
+                                <a asp-controller="Organizations"
+                                   asp-action="Details"
+                                   asp-route-id="@organization.Id"
+                                   class="btn btn-sm btn-outline-info">
+                                    Users
+                                </a>
+
                             </td>
 
                         </tr>

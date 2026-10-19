@@ -237,6 +237,46 @@ public class OrganizationsController : Controller
         return RedirectToAction(nameof(Index));
     }
 
+    // GET: /Organizations/Details/1
+    [HttpGet]
+    public async Task<IActionResult> Details(int id)
+    {
+        // Зареждаме избраната организация
+        var organization = await _context.Organizations
+            .AsNoTracking()
+            .FirstOrDefaultAsync(o => o.Id == id);
+
+        if (organization == null)
+            return NotFound();
+
+        // Извличаме потребителите само на тази организация
+        var users = await _context.Users
+            .Where(u => u.OrganizationId == id)
+            .AsNoTracking()
+            .OrderBy(u => u.LastName)
+            .ThenBy(u => u.FirstName)
+            .Select(u => new OrganizationUserViewModel
+            {
+                Id = u.Id,
+                FirstName = u.FirstName,
+                LastName = u.LastName,
+                Email = u.Email ?? string.Empty
+            })
+            .ToListAsync();
+
+        // Обединяваме организацията и потребителите
+        var model = new OrganizationDetailsViewModel
+        {
+            Id = organization.Id,
+            Name = organization.Name,
+            RegistrationNumber = organization.RegistrationNumber,
+            IsActive = organization.IsActive,
+            Users = users
+        };
+
+        return View(model);
+    }
+
 
 }
 
