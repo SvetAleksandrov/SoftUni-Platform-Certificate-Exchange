@@ -1,125 +1,348 @@
-﻿@* Моделът съдържа списък от клиентски организации *@
-@model IEnumerable<SoftUni_Platform_Certificate_Exchange.Models.Organization>
+﻿@model IEnumerable<SoftUni_Platform_Certificate_Exchange.Models.Organization>
 
 @{
-    // Заглавие на страницата
     ViewData["Title"] = "Organizations";
+
+    // Текущите филтри
+    string organizationSearch =
+        ViewBag.OrganizationSearch as string ?? "";
+
+    string registrationSearch =
+        ViewBag.RegistrationSearch as string ?? "";
+
+    string statusSearch =
+        ViewBag.StatusSearch as string ?? "all";
+
+    string groupBy = ViewBag.GroupBy as string ?? "none";
+    string sort = ViewBag.Sort as string ?? "organization_asc";
+
+    var organizations = Model.ToList();
+
+    // Определяме следващата посока на сортиране
+    string organizationNext = sort == "organization_asc"
+        ? "organization_desc" : "organization_asc";
+
+    string registrationNext = sort == "registration_asc"
+        ? "registration_desc" : "registration_asc";
+
+    string statusNext = sort == "status_asc"
+        ? "status_desc" : "status_asc";
+
+    // Визуално групиране по избраната колона
+    var groups = organizations.GroupBy(o => groupBy switch
+    {
+        "organization" => o.Name,
+        "registration" => o.RegistrationNumber ?? "N/A",
+        "status" => o.IsActive ? "Active" : "Inactive",
+        _ => "All"
+    }).ToList();
 }
 
 <div class="container mt-4">
 
-    @* Заглавие на страницата *@
-    <h2>Client Organizations</h2>
-
-
-    @* Навигация към формуляра за нова организация *@
-    <a asp-controller="Organizations"
-       asp-action="Create"
-       class="btn btn-primary mb-3">
-        + Create Organization
-    </a>
-
-    @* Отваря формуляра за нов клиентски потребител *@
-    <a asp-controller="Users"
-       asp-action="Create"
-       class="btn btn-outline-primary mb-3">
-        + Create Client User
-    </a>
-
-
+    <h2>Organization Management</h2>
+    
     <p class="text-muted">
-        List of registered client organizations.
+        Manage, search and organize client organizations.
     </p>
 
-    @* Проверяваме дали има организации *@
-    @if (Model.Any())
+    @if (TempData["Success"] != null)
     {
+        <div class="alert alert-success">
+            @TempData["Success"]
+        </div>
+    }
+
+    @* Административни действия *@
+    <div class="mb-4">
+
+        <a asp-action="Create"
+           class="btn btn-primary">
+            + Create Organization
+        </a>
+
+        <a asp-controller="Users"
+           asp-action="Create"
+           class="btn btn-outline-primary">
+            + Create Client User
+        </a>
+
+        <a asp-controller="Users"
+           asp-action="Index"
+           class="btn btn-outline-secondary">
+            View Users
+        </a>
+
+    </div>
+
+    @* Един GET формуляр за всички филтри в таблицата *@
+    <form asp-action="Index" method="get">
+
+        @* Запазваме избраното сортиране *@
+        <input type="hidden" name="sort" value="@sort" />
+
+        <div class="d-flex justify-content-between
+                    align-items-center mb-3">
+
+            <div>
+                Showing <strong>@organizations.Count</strong>
+                organization(s)
+            </div>
+
+            <div class="d-flex align-items-center gap-2">
+
+                <label for="groupBy" class="form-label mb-0">
+                    Group By
+                </label>
+
+                <select id="groupBy"
+                        name="groupBy"
+                        class="form-select form-select-sm"
+                        onchange="this.form.requestSubmit()">
+
+                    <option value="none"
+                            selected="@(groupBy == "none")">
+                        No Grouping
+                    </option>
+
+                    <option value="organization"
+                            selected="@(groupBy == "organization")">
+                        Organization
+                    </option>
+
+                    <option value="registration"
+                            selected="@(groupBy == "registration")">
+                        Registration
+                    </option>
+
+                    <option value="status"
+                            selected="@(groupBy == "status")">
+                        Status
+                    </option>
+
+                </select>
+
+                <a asp-action="Index"
+                   class="btn btn-sm btn-outline-secondary">
+                    Reset
+                </a>
+
+            </div>
+        </div>
+
         <div class="table-responsive">
 
-            @* Bootstrap таблица *@
             <table class="table table-striped table-hover">
 
-                <thead class="table-dark">
-                    <tr>
-                        <th>ID</th>
-                        <th>Organization Name</th>
-                        <th>Registration Number</th>
-                        <th>Status</th>
-                        @* Колона с действия за организацията *@
+                @* Заглавия със сортиране *@
+                <thead>
+
+                    <tr class="table-dark">
+
+                        <th>
+                            <a asp-action="Index"
+                               asp-route-organizationSearch="@organizationSearch"
+                               asp-route-registrationSearch="@registrationSearch"
+                               asp-route-statusSearch="@statusSearch"
+                               asp-route-groupBy="@groupBy"
+                               asp-route-sort="@organizationNext"
+                               class="text-white text-decoration-none">
+
+                                Organization
+
+                                @(sort == "organization_asc" ? "↑" :
+                                                                sort == "organization_desc" ? "↓" : "↕")
+                            </a>
+                        </th>
+
+                        <th>
+                            <a asp-action="Index"
+                               asp-route-organizationSearch="@organizationSearch"
+                               asp-route-registrationSearch="@registrationSearch"
+                               asp-route-statusSearch="@statusSearch"
+                               asp-route-groupBy="@groupBy"
+                               asp-route-sort="@registrationNext"
+                               class="text-white text-decoration-none">
+
+                                Registration
+
+                                @(sort == "registration_asc" ? "↑" :
+                                                                sort == "registration_desc" ? "↓" : "↕")
+                            </a>
+                        </th>
+
+                        <th>
+                            <a asp-action="Index"
+                               asp-route-organizationSearch="@organizationSearch"
+                               asp-route-registrationSearch="@registrationSearch"
+                               asp-route-statusSearch="@statusSearch"
+                               asp-route-groupBy="@groupBy"
+                               asp-route-sort="@statusNext"
+                               class="text-white text-decoration-none">
+
+                                Status
+
+                                @(sort == "status_asc" ? "↑" :
+                                                                sort == "status_desc" ? "↓" : "↕")
+                            </a>
+                        </th>
+
                         <th>Actions</th>
 
                     </tr>
+
+                    @* Search директно под заглавията *@
+                    <tr class="table-light">
+
+                        @* Organization Search *@
+                        <th>
+                            <div class="input-group input-group-sm">
+
+                                <input type="search"
+                                       name="organizationSearch"
+                                       value="@organizationSearch"
+                                       class="form-control"
+                                       placeholder="Search organization"
+                                       aria-label="Search organization" />
+
+                                <button type="submit"
+                                        class="btn btn-outline-secondary"
+                                        title="Search organization">
+                                    &#128269;
+                                </button>
+
+                            </div>
+                        </th>
+
+                        @* Registration Search *@
+                        <th>
+                            <div class="input-group input-group-sm">
+
+                                <input type="search"
+                                       name="registrationSearch"
+                                       value="@registrationSearch"
+                                       class="form-control"
+                                       placeholder="Search registration"
+                                       aria-label="Search registration" />
+
+                                <button type="submit"
+                                        class="btn btn-outline-secondary"
+                                        title="Search registration">
+                                    &#128269;
+                                </button>
+
+                            </div>
+                        </th>
+
+                        @* Status Filter *@
+                        <th>
+                            <select name="statusSearch"
+                                    class="form-select form-select-sm"
+                                    aria-label="Filter status"
+                                    onchange="this.form.requestSubmit()">
+
+                                <option value="all"
+                                        selected="@(statusSearch == "all")">
+                                    All Statuses
+                                </option>
+
+                                <option value="active"
+                                        selected="@(statusSearch == "active")">
+                                    Active
+                                </option>
+
+                                <option value="inactive"
+                                        selected="@(statusSearch == "inactive")">
+                                    Inactive
+                                </option>
+
+                            </select>
+                        </th>
+
+                        <th></th>
+
+                    </tr>
+
                 </thead>
 
                 <tbody>
-                    @* Обхождаме организациите *@
-                    @foreach (var organization in Model)
+
+                    @if (!organizations.Any())
                     {
                         <tr>
-                            <td>@organization.Id</td>
-
-                            <td>@organization.Name</td>
-
-                            <td>
-                                @(organization.RegistrationNumber ?? "N/A")
+                            <td colspan="4" class="text-center">
+                                No organizations match the selected filters.
                             </td>
-
-                            <td>
-                                @* Показваме статуса на организацията *@
-                                @if (organization.IsActive)
-                                {
-                                    <span class="badge bg-success">
-                                        Active
-                                    </span>
-                                }
-                                else
-                                {
-                                    <span class="badge bg-danger">
-                                        Inactive
-                                    </span>
-                                }
-                            </td>
-
-                            @* Бутон за редактиране на конкретната организация *@
-                            <td>
-                                <a asp-controller="Organizations"
-                                   asp-action="Edit"
-                                   asp-route-id="@organization.Id"
-                                   class="btn btn-sm btn-outline-primary">
-                                    Edit
-                                </a>
-
-                              @* Бутон за изтриване на организация *@
-                                <a asp-controller="Organizations"
-                                   asp-action="Delete"
-                                   asp-route-id="@organization.Id"
-                                   class="btn btn-sm btn-outline-danger">
-                                    Delete
-                                </a>
-
-                                @* Показва организацията и свързаните потребители *@
-                                <a asp-controller="Organizations"
-                                   asp-action="Details"
-                                   asp-route-id="@organization.Id"
-                                   class="btn btn-sm btn-outline-info">
-                                    Users
-                                </a>
-
-                            </td>
-
                         </tr>
                     }
+
+                    @foreach (var group in groups)
+                    {
+                        @* Показваме заглавие при групиране *@
+                        if (groupBy != "none")
+                        {
+                            <tr class="table-secondary">
+                                <th colspan="4">
+                                    @group.Key (@group.Count())
+                                </th>
+                            </tr>
+                        }
+
+                        @foreach (var organization in group)
+                        {
+                            <tr>
+
+                                <td>@organization.Name</td>
+
+                                <td>
+                                    @(organization.RegistrationNumber ?? "N/A")
+                                </td>
+
+                                <td>
+                                    @if (organization.IsActive)
+                                    {
+                                        <span class="badge bg-success">
+                                            Active
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary">
+                                            Inactive
+                                        </span>
+                                    }
+                                </td>
+
+                                <td>
+                                    <a asp-action="Details"
+                                       asp-route-id="@organization.Id"
+                                       class="btn btn-sm btn-outline-info">
+                                        Users
+                                    </a>
+
+                                    <a asp-action="Edit"
+                                       asp-route-id="@organization.Id"
+                                       class="btn btn-sm btn-outline-primary">
+                                        Edit
+                                    </a>
+
+                                    <a asp-action="Delete"
+                                       asp-route-id="@organization.Id"
+                                       class="btn btn-sm btn-outline-danger">
+                                        Delete
+                                    </a>
+                                </td>
+
+                            </tr>
+                        }
+                    }
+
                 </tbody>
 
             </table>
+
         </div>
-    }
-    else
-    {
-        @* Съобщение при празна таблица *@
-        <div class="alert alert-info">
-            No organizations have been registered yet.
-        </div>
-    }
+
+    </form>
 
 </div>

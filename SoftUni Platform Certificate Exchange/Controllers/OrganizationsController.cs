@@ -23,17 +23,128 @@ public class OrganizationsController : Controller
 
     // HTTP GET: /Organizations или /Organizations/Index
     [HttpGet]
-    public async Task<IActionResult> Index()
+    public async Task<IActionResult> Index(
+        string? organizationSearch,
+        string? registrationSearch,
+        string statusSearch = "all",
+        string groupBy = "none",
+        string sort = "organization_asc")
     {
-        // Извличаме всички организации от SQL Server
-        var organizations = await _context.Organizations
-            .AsNoTracking()          // Само четене, без проследяване
-            .OrderBy(o => o.Name)   // Сортиране по име
-            .ToListAsync();         // Асинхронно изпълнение на заявката
+        // 1. Подготвяме заявката, без да я изпълняваме
+        var query = _context.Organizations
+            .AsNoTracking()
+            .AsQueryable();
 
-        // Предаваме резултата към Razor View
+        // 2. SEARCH: Organization
+        organizationSearch = organizationSearch?.Trim() ?? "";
+
+        if (!string.IsNullOrWhiteSpace(organizationSearch))
+        {
+            // Търсим само в колоната Name
+            query = query.Where(o =>
+                o.Name.Contains(organizationSearch));
+        }
+
+        // 3. SEARCH: Registration
+        registrationSearch = registrationSearch?.Trim() ?? "";
+
+        if (!string.IsNullOrWhiteSpace(registrationSearch))
+        {
+            // Търсим само в колоната RegistrationNumber
+            query = query.Where(o =>
+                o.RegistrationNumber != null &&
+                o.RegistrationNumber.Contains(registrationSearch));
+        }
+
+        // 4. FILTER: Status
+        statusSearch = statusSearch?.Trim().ToLowerInvariant() ?? "all";
+
+        if (statusSearch == "active")
+        {
+            query = query.Where(o => o.IsActive);
+        }
+        else if (statusSearch == "inactive")
+        {
+            query = query.Where(o => !o.IsActive);
+        }
+        else
+        {
+            statusSearch = "all";
+        }
+
+        // 5. GROUP BY: Проверка на избраната колона
+        groupBy = groupBy?.Trim().ToLowerInvariant() ?? "none";
+
+        string[] allowedGroups =
+        {
+        "none",
+        "organization",
+        "registration",
+        "status"
+    };
+
+        if (!allowedGroups.Contains(groupBy))
+        {
+            groupBy = "none";
+        }
+
+        // 6. SORTING: Проверка на избраната колона и посока
+        sort = sort?.Trim().ToLowerInvariant() ?? "organization_asc";
+
+        string[] allowedSorts =
+        {
+        "organization_asc",
+        "organization_desc",
+        "registration_asc",
+        "registration_desc",
+        "status_asc",
+        "status_desc"
+    };
+
+        if (!allowedSorts.Contains(sort))
+        {
+            sort = "organization_asc";
+        }
+
+        // 7. Сортираме според избраната колона
+        var orderedQuery = sort switch
+        {
+            "organization_desc" => query
+                .OrderByDescending(o => o.Name),
+
+            "registration_asc" => query
+                .OrderBy(o => o.RegistrationNumber),
+
+            "registration_desc" => query
+                .OrderByDescending(o => o.RegistrationNumber),
+
+            "status_asc" => query
+                .OrderBy(o => o.IsActive),
+
+            "status_desc" => query
+                .OrderByDescending(o => o.IsActive),
+
+            // По подразбиране: Organization A-Z
+            _ => query.OrderBy(o => o.Name)
+        };
+
+        // 8. Изпълняваме SQL заявката
+        // ID осигурява стабилна подредба при равни стойности
+        var organizations = await orderedQuery
+            .ThenBy(o => o.Id)
+            .ToListAsync();
+
+        // 9. Предаваме стойностите обратно към Razor View
+        ViewBag.OrganizationSearch = organizationSearch;
+        ViewBag.RegistrationSearch = registrationSearch;
+        ViewBag.StatusSearch = statusSearch;
+        ViewBag.GroupBy = groupBy;
+        ViewBag.Sort = sort;
+
+        // 10. Връщаме филтрираните резултати
         return View(organizations);
     }
+
 
     // GET: /Organizations/Create
     // Показва празния формуляр за нова организация

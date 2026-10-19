@@ -29,14 +29,127 @@ public class UsersController : Controller
 
     // GET: /Users
     // Показва всички потребители и техните организации
+
     [HttpGet]
-    public async Task<IActionResult> Index()
+    public async Task<IActionResult> Index(
+        string? firstNameSearch,
+        string? lastNameSearch,
+        string? emailSearch,
+        string? organizationSearch,
+        string groupBy = "none",
+        string sort = "lastname_asc")
     {
-        // Извличаме потребителите от Identity таблицата
-        var users = await _context.Users
+        // 1. Подготвяме SQL заявката, без да я изпълняваме
+        var query = _context.Users
             .AsNoTracking()
-            .OrderBy(u => u.LastName)
-            .ThenBy(u => u.FirstName)
+            .AsQueryable();
+
+        // 2. SEARCH: First Name
+        firstNameSearch = firstNameSearch?.Trim() ?? "";
+
+        if (!string.IsNullOrWhiteSpace(firstNameSearch))
+        {
+            query = query.Where(u =>
+                u.FirstName.Contains(firstNameSearch));
+        }
+
+        // 3. SEARCH: Last Name
+        lastNameSearch = lastNameSearch?.Trim() ?? "";
+
+        if (!string.IsNullOrWhiteSpace(lastNameSearch))
+        {
+            query = query.Where(u =>
+                u.LastName.Contains(lastNameSearch));
+        }
+
+        // 4. SEARCH: Email
+        emailSearch = emailSearch?.Trim() ?? "";
+
+        if (!string.IsNullOrWhiteSpace(emailSearch))
+        {
+            query = query.Where(u =>
+                u.Email != null &&
+                u.Email.Contains(emailSearch));
+        }
+
+        // 5. SEARCH: Organization
+        organizationSearch = organizationSearch?.Trim() ?? "";
+
+        if (!string.IsNullOrWhiteSpace(organizationSearch))
+        {
+            // Разпознаваме и вътрешните потребители
+            bool matchesInternal = "Internal / System".Contains(
+                organizationSearch,
+                StringComparison.OrdinalIgnoreCase);
+
+            query = query.Where(u =>
+                (u.Organization != null &&
+                 u.Organization.Name.Contains(organizationSearch)) ||
+                (matchesInternal && u.OrganizationId == null));
+        }
+
+        // 6. GROUP BY: Разрешените колони
+        groupBy = groupBy?.Trim().ToLowerInvariant() ?? "none";
+
+        string[] allowedGroups =
+        {
+        "none",
+        "firstname",
+        "lastname",
+        "email",
+        "organization"
+    };
+
+        if (!allowedGroups.Contains(groupBy))
+            groupBy = "none";
+
+        // 7. SORTING: Разрешените колони и посоки
+        sort = sort?.Trim().ToLowerInvariant() ?? "lastname_asc";
+
+        string[] allowedSorts =
+        {
+        "firstname_asc", "firstname_desc",
+        "lastname_asc", "lastname_desc",
+        "email_asc", "email_desc",
+        "organization_asc", "organization_desc"
+    };
+
+        if (!allowedSorts.Contains(sort))
+            sort = "lastname_asc";
+
+        // 8. Сортираме данните в SQL Server
+        var orderedQuery = sort switch
+        {
+            "firstname_asc" => query
+                .OrderBy(u => u.FirstName),
+
+            "firstname_desc" => query
+                .OrderByDescending(u => u.FirstName),
+
+            "lastname_desc" => query
+                .OrderByDescending(u => u.LastName),
+
+            "email_asc" => query
+                .OrderBy(u => u.Email),
+
+            "email_desc" => query
+                .OrderByDescending(u => u.Email),
+
+            "organization_asc" => query
+                .OrderBy(u => u.Organization != null
+                    ? u.Organization.Name : "Internal / System"),
+
+            "organization_desc" => query
+                .OrderByDescending(u => u.Organization != null
+                    ? u.Organization.Name : "Internal / System"),
+
+            // По подразбиране: Last Name A-Z
+            _ => query.OrderBy(u => u.LastName)
+        };
+
+        // 9. Извличаме само необходимите данни
+        var users = await orderedQuery
+            .ThenBy(u => u.Id)
             .Select(u => new UserListItemViewModel
             {
                 Id = u.Id,
@@ -44,16 +157,24 @@ public class UsersController : Controller
                 LastName = u.LastName,
                 Email = u.Email ?? string.Empty,
                 OrganizationId = u.OrganizationId,
-
-                // EF Core извлича името на свързаната организация
                 OrganizationName = u.Organization != null
                     ? u.Organization.Name
                     : null
             })
             .ToListAsync();
 
+        // 10. Връщаме филтрите към Razor View
+        ViewBag.FirstNameSearch = firstNameSearch;
+        ViewBag.LastNameSearch = lastNameSearch;
+        ViewBag.EmailSearch = emailSearch;
+        ViewBag.OrganizationSearch = organizationSearch;
+
+        ViewBag.GroupBy = groupBy;
+        ViewBag.Sort = sort;
+
         return View(users);
     }
+
 
     // Зареждаме активните организации
     private async Task LoadOrganizationsAsync()

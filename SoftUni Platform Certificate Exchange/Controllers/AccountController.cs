@@ -57,21 +57,21 @@ public class AccountController : Controller
             user, model.Password, model.RememberMe,
             lockoutOnFailure: true);
 
+       
+// При успешна автентикация
+if (result.Succeeded)
+{
+    // При временна парола отваряме Change Password
+    if (user.MustChangePassword)
+        return RedirectToAction(nameof(ChangePassword));
 
-        // При успешна автентикация
-        if (result.Succeeded)
-        {
-            // При временна парола отваряме Change Password
-            if (user.MustChangePassword)
-                return RedirectToAction(nameof(ChangePassword));
+    // Връщаме потребителя към поисканата локална страница
+    if (Url.IsLocalUrl(returnUrl))
+        return LocalRedirect(returnUrl);
 
-            // Връщаме потребителя към поисканата локална страница
-            if (Url.IsLocalUrl(returnUrl))
-                return LocalRedirect(returnUrl);
-
-            // Стандартно пренасочване към Home
-            return RedirectToAction("Index", "Home");
-        }
+    // Стандартно пренасочване към Home
+    return RedirectToAction("Index", "Home");
+}
 
 
         if (result.IsLockedOut)

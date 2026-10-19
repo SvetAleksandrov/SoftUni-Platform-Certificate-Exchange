@@ -1,7 +1,58 @@
 ﻿@model IEnumerable<SoftUni_Platform_Certificate_Exchange.ViewModels.UserListItemViewModel>
 
 @{
-    ViewData["Title"] = "Users";
+    ViewData["Title"] = "User Management";
+
+    // Получаваме стойностите от Controller
+    string firstNameSearch =
+        ViewBag.FirstNameSearch as string ?? "";
+
+    string lastNameSearch =
+        ViewBag.LastNameSearch as string ?? "";
+
+    string emailSearch =
+        ViewBag.EmailSearch as string ?? "";
+
+    string organizationSearch =
+        ViewBag.OrganizationSearch as string ?? "";
+
+    string groupBy = ViewBag.GroupBy as string ?? "none";
+    string sort = ViewBag.Sort as string ?? "lastname_asc";
+
+    var users = Model.ToList();
+
+    // Следващата посока при клик върху заглавие
+    string firstNameNext = sort == "firstname_asc"
+        ? "firstname_desc" : "firstname_asc";
+
+    string lastNameNext = sort == "lastname_asc"
+        ? "lastname_desc" : "lastname_asc";
+
+    string emailNext = sort == "email_asc"
+        ? "email_desc" : "email_asc";
+
+    string organizationNext = sort == "organization_asc"
+        ? "organization_desc" : "organization_asc";
+
+    // Име на групиращата колона
+    string groupLabel = groupBy switch
+    {
+        "firstname" => "First Name",
+        "lastname" => "Last Name",
+        "email" => "Email",
+        "organization" => "Organization",
+        _ => ""
+    };
+
+    // Визуално групиране на получените потребители
+    var groups = users.GroupBy(u => groupBy switch
+    {
+        "firstname" => u.FirstName,
+        "lastname" => u.LastName,
+        "email" => u.Email,
+        "organization" => u.OrganizationName ?? "Internal / System",
+        _ => "All"
+    }).ToList();
 }
 
 <div class="container mt-4">
@@ -9,71 +60,279 @@
     <h2>User Management</h2>
 
     <p class="text-muted">
-        Manage users and their assigned organizations.
+        Search, sort and group client users.
     </p>
 
-    @* Отваряме формуляра за нов потребител *@
-    <a asp-controller="Users"
-       asp-action="Create"
-       class="btn btn-primary mb-3">
-        + Create Client User
-    </a>
+    @* Създаване на нов Client потребител *@
+    <div class="mb-4">
+        <a asp-controller="Users"
+           asp-action="Create"
+           class="btn btn-primary">
+            + Create Client User
+        </a>
+    </div>
 
-    @* Показваме броя потребители *@
-    <p>Total Users: <strong>@Model.Count()</strong></p>
+    @* Всички филтри са в един GET формуляр *@
+    <form id="userFilters"
+          action="@Url.Action("Index", "Users")"
+          method="get">
 
-    @if (Model.Any())
-    {
+        @* Текущото сортиране - променя се от стрелките *@
+        <input type="hidden"
+               id="sortValue"
+               name="sort"
+               value="@sort" />
+
+        <div class="d-flex justify-content-between
+                    align-items-center mb-3">
+
+            <span>
+                Showing <strong>@users.Count</strong> user(s)
+            </span>
+
+            @* Group By падащо меню *@
+            <div class="d-flex align-items-center gap-2">
+
+                <label for="groupBy" class="mb-0">
+                    Group By
+                </label>
+
+                <select id="groupBy"
+                        name="groupBy"
+                        class="form-select form-select-sm"
+                        onchange="this.form.requestSubmit()">
+
+                    <option value="none"
+                            selected="@(groupBy == "none")">
+                        No Grouping
+                    </option>
+
+                    <option value="firstname"
+                            selected="@(groupBy == "firstname")">
+                        First Name
+                    </option>
+
+                    <option value="lastname"
+                            selected="@(groupBy == "lastname")">
+                        Last Name
+                    </option>
+
+                    <option value="email"
+                            selected="@(groupBy == "email")">
+                        Email
+                    </option>
+
+                    <option value="organization"
+                            selected="@(groupBy == "organization")">
+                        Organization
+                    </option>
+
+                </select>
+
+                <a asp-controller="Users"
+                   asp-action="Index"
+                   class="btn btn-sm btn-outline-secondary">
+                    Reset
+                </a>
+
+            </div>
+        </div>
+
         <div class="table-responsive">
+
             <table class="table table-striped table-hover">
 
-                <thead class="table-dark">
-                    <tr>
-                        <th>First Name</th>
-                        <th>Last Name</th>
-                        <th>Email</th>
-                        <th>Organization</th>
+                <thead>
+
+                    @* Заглавията управляват сортирането *@
+                    <tr class="table-dark">
+
+                        <th>
+                            <button type="submit"
+                                    class="btn btn-link text-white text-decoration-none p-0"
+                                    onclick="document.getElementById('sortValue').value='@firstNameNext'">
+
+                                First Name
+
+                                @(sort == "firstname_asc" ? "↑" :
+                                                                sort == "firstname_desc" ? "↓" : "↕")
+                            </button>
+                        </th>
+
+                        <th>
+                            <button type="submit"
+                                    class="btn btn-link text-white text-decoration-none p-0"
+                                    onclick="document.getElementById('sortValue').value='@lastNameNext'">
+
+                                Last Name
+
+                                @(sort == "lastname_asc" ? "↑" :
+                                                                sort == "lastname_desc" ? "↓" : "↕")
+                            </button>
+                        </th>
+
+                        <th>
+                            <button type="submit"
+                                    class="btn btn-link text-white text-decoration-none p-0"
+                                    onclick="document.getElementById('sortValue').value='@emailNext'">
+
+                                Email
+
+                                @(sort == "email_asc" ? "↑" :
+                                                                sort == "email_desc" ? "↓" : "↕")
+                            </button>
+                        </th>
+
+                        <th>
+                            <button type="submit"
+                                    class="btn btn-link text-white text-decoration-none p-0"
+                                    onclick="document.getElementById('sortValue').value='@organizationNext'">
+
+                                Organization
+
+                                @(sort == "organization_asc" ? "↑" :
+                                                                sort == "organization_desc" ? "↓" : "↕")
+                            </button>
+                        </th>
+
                     </tr>
+
+                    @* Search директно под всяка колона *@
+                    <tr class="table-light">
+
+                        <th>
+                            <div class="input-group input-group-sm">
+
+                                <input type="search"
+                                       name="firstNameSearch"
+                                       value="@firstNameSearch"
+                                       class="form-control"
+                                       placeholder="Search first name"
+                                       aria-label="Search first name" />
+
+                                <button type="submit"
+                                        class="btn btn-outline-secondary"
+                                        title="Search first name">
+                                    &#128269;
+                                </button>
+                            </div>
+                        </th>
+
+                        <th>
+                            <div class="input-group input-group-sm">
+
+                                <input type="search"
+                                       name="lastNameSearch"
+                                       value="@lastNameSearch"
+                                       class="form-control"
+                                       placeholder="Search last name"
+                                       aria-label="Search last name" />
+
+                                <button type="submit"
+                                        class="btn btn-outline-secondary"
+                                        title="Search last name">
+                                    &#128269;
+                                </button>
+                            </div>
+                        </th>
+
+                        <th>
+                            <div class="input-group input-group-sm">
+
+                                <input type="search"
+                                       name="emailSearch"
+                                       value="@emailSearch"
+                                       class="form-control"
+                                       placeholder="Search email"
+                                       aria-label="Search email" />
+
+                                <button type="submit"
+                                        class="btn btn-outline-secondary"
+                                        title="Search email">
+                                    &#128269;
+                                </button>
+                            </div>
+                        </th>
+
+                        <th>
+                            <div class="input-group input-group-sm">
+
+                                <input type="search"
+                                       name="organizationSearch"
+                                       value="@organizationSearch"
+                                       class="form-control"
+                                       placeholder="Search organization"
+                                       aria-label="Search organization" />
+
+                                <button type="submit"
+                                        class="btn btn-outline-secondary"
+                                        title="Search organization">
+                                    &#128269;
+                                </button>
+                            </div>
+                        </th>
+
+                    </tr>
+
                 </thead>
 
                 <tbody>
-                    @foreach (var user in Model)
+
+                    @if (!users.Any())
                     {
                         <tr>
-                            <td>@user.FirstName</td>
-                            <td>@user.LastName</td>
-                            <td>@user.Email</td>
-
-                            <td>
-                                @if (user.OrganizationId.HasValue)
-                                {
-                                    @* Връзка към организацията *@
-                                    <a asp-controller="Organizations"
-                                       asp-action="Details"
-                                       asp-route-id="@user.OrganizationId.Value">
-                                        @user.OrganizationName
-                                    </a>
-                                }
-                                else
-                                {
-                                    @* Вътрешен потребител без организация *@
-                                    <span class="text-muted">
-                                        Internal / System
-                                    </span>
-                                }
+                            <td colspan="4" class="text-center">
+                                No users match the selected filters.
                             </td>
                         </tr>
                     }
+
+                    @* Показваме потребителите, разделени по групи *@
+                    @foreach (var group in groups)
+                    {
+                        @if (groupBy != "none")
+                        {
+                            <tr class="table-secondary">
+                                <th colspan="4">
+                                    @groupLabel: @group.Key
+                                    (@group.Count())
+                                </th>
+                            </tr>
+                        }
+
+                        @foreach (var user in group)
+                        {
+                            <tr>
+                                <td>@user.FirstName</td>
+
+                                <td>@user.LastName</td>
+
+                                <td>@user.Email</td>
+
+                                <td>
+                                    @if (user.OrganizationId.HasValue)
+                                    {
+                                        @* Отваряме детайлите на организацията *@
+                                        <a asp-controller="Organizations"
+                                           asp-action="Details"
+                                           asp-route-id="@user.OrganizationId.Value">
+                                            @user.OrganizationName
+                                        </a>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">
+                                            Internal / System
+                                        </span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    }
+
                 </tbody>
 
             </table>
         </div>
-    }
-    else
-    {
-        <div class="alert alert-info">
-            No users found.
-        </div>
-    }
-
+    </form>
 </div>
