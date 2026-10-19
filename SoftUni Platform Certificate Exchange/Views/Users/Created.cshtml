@@ -1,0 +1,57 @@
+﻿@model SoftUni_Platform_Certificate_Exchange.ViewModels.ClientCreatedViewModel
+
+@{
+    ViewData["Title"] = "Client User Created";
+}
+
+<div class="container mt-4">
+
+    <h2>Client User Created</h2>
+
+    <div class="alert alert-success">
+        The client account was created successfully.
+    </div>
+
+    @* Информация за създадения потребител *@
+    <div class="card">
+        <div class="card-body">
+
+            <p>
+                <strong>Organization:</strong>
+                @Model.OrganizationName
+            </p>
+
+            <p>
+                <strong>Email:</strong>
+                @Model.Email
+            </p>
+
+            @* Временна парола - показва се само тук *@
+            <div class="mb-3">
+                <label class="form-label">
+                    Temporary Password
+                </label>
+
+                <input type="text"
+                       class="form-control"
+                       value="@Model.TemporaryPassword"
+                       readonly
+                       autocomplete="off" />
+            </div>
+
+            <div class="alert alert-warning">
+                Copy the password now.
+                It will not be displayed again after leaving
+                this page.
+            </div>
+
+            @* Навигация към потребителите *@
+            <a asp-controller="Users"
+               asp-action="Index"
+               class="btn btn-primary">
+                Back to Users
+            </a>
+
+        </div>
+    </div>
+</div>

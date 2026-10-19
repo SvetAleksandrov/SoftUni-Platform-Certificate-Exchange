@@ -55,23 +55,13 @@
                   class="text-danger"></span>
         </div>
 
-        @* Начална парола *@
-        <div class="mb-3">
-            <label asp-for="Password" class="form-label"></label>
-            <input asp-for="Password" class="form-control"
-                   autocomplete="new-password" />
-            <span asp-validation-for="Password"
-                  class="text-danger"></span>
+
+        @* Информация за автоматично генерираната парола *@
+        <div class="alert alert-info">
+            A secure temporary password will be generated automatically.
+            The client must change it after the first login.
         </div>
 
-        @* Потвърждение на паролата *@
-        <div class="mb-3">
-            <label asp-for="ConfirmPassword" class="form-label"></label>
-            <input asp-for="ConfirmPassword" class="form-control"
-                   autocomplete="new-password" />
-            <span asp-validation-for="ConfirmPassword"
-                  class="text-danger"></span>
-        </div>
 
         <button type="submit" class="btn btn-success">
             Create Client User
