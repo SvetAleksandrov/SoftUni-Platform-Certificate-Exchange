@@ -1,8 +1,367 @@
-﻿@{
-    ViewData["Title"] = "Home Page";
+﻿@using SoftUni_Platform_Certificate_Exchange.Models
+
+@model SoftUni_Platform_Certificate_Exchange.ViewModels.HomeDashboardViewModel
+
+@{
+    ViewData["Title"] = "Home";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<div class="container py-4">
+
+    @* 1. PUBLIC HOME - посетител без Login *@
+    @if (User.Identity?.IsAuthenticated != true)
+    {
+        <div class="bg-light rounded-4 p-5 mb-4">
+
+            <h1 class="display-5 fw-bold">
+                Welcome to SecureCert Portal
+            </h1>
+
+            <p class="lead mt-3">
+                A secure platform for sharing, validating
+                and reviewing public SSL/TLS certificates.
+            </p>
+
+            <p class="text-muted">
+                Submit certificates for your organization
+                and track their review status in one place.
+            </p>
+
+            <a asp-controller="Account"
+               asp-action="Login"
+               class="btn btn-primary btn-lg mt-3">
+                Sign In
+            </a>
+
+            <p class="small text-muted mt-3 mb-0">
+                Access is available to authorized users.
+                Client accounts are created by an administrator.
+            </p>
+        </div>
+
+        @* Основни функционалности на платформата *@
+        <h3 class="mb-3">How It Works</h3>
+
+        <div class="row g-3">
+
+            <div class="col-md-4">
+                <div class="card h-100">
+                    <div class="card-body">
+
+                        <h5>1. Account Setup</h5>
+
+                        <p class="text-muted mb-0">
+                            An administrator creates your
+                            organization and user account.
+                        </p>
+
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="card h-100">
+                    <div class="card-body">
+
+                        <h5>2. Certificate Submission</h5>
+
+                        <p class="text-muted mb-0">
+                            Upload a public SSL/TLS certificate
+                            and submit it for validation.
+                        </p>
+
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="card h-100">
+                    <div class="card-body">
+
+                        <h5>3. Review & Tracking</h5>
+
+                        <p class="text-muted mb-0">
+                            Track certificate status and
+                            review results through the portal.
+                        </p>
+
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    }
+    else
+    {
+        @* 2. DASHBOARD - вписан потребител *@
+        <div class="mb-4">
+
+            <h1>Welcome back, @Model.DisplayName!</h1>
+
+            @if (Model.IsAdmin)
+            {
+                <p class="text-muted">
+                    Administrator Dashboard — overview of
+                    all organizations and certificates.
+                </p>
+            }
+            else
+            {
+                <p class="text-muted">
+                    Client Dashboard —
+                    @Model.OrganizationName
+                </p>
+            }
+
+        </div>
+
+        @* 3. Бързи административни действия *@
+        @if (Model.IsAdmin)
+        {
+            <div class="d-flex flex-wrap gap-2 mb-4">
+
+                <a asp-controller="Organizations"
+                   asp-action="Index"
+                   class="btn btn-outline-primary">
+                    Manage Organizations
+                </a>
+
+                <a asp-controller="Users"
+                   asp-action="Index"
+                   class="btn btn-outline-primary">
+                    Manage Users
+                </a>
+
+                <a asp-controller="Certificates"
+                   asp-action="Index"
+                   class="btn btn-outline-primary">
+                    Manage Certificates
+                </a>
+
+                <a asp-controller="Users"
+                   asp-action="Create"
+                   class="btn btn-primary">
+                    + Create Client User
+                </a>
+
+            </div>
+
+            @* Показатели, достъпни само за Admin *@
+            <div class="row g-3 mb-4">
+
+                <div class="col-md-6">
+                    <div class="card h-100">
+                        <div class="card-body">
+
+                            <p class="text-muted">
+                                Organizations
+                            </p>
+
+                            <h2>@Model.OrganizationCount</h2>
+
+                            <a asp-controller="Organizations"
+                               asp-action="Index">
+                                View Organizations
+                            </a>
+
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="card h-100">
+                        <div class="card-body">
+
+                            <p class="text-muted">
+                                Assigned Users
+                            </p>
+
+                            <h2>@Model.AssignedUsersCount</h2>
+
+                            <a asp-controller="Users"
+                               asp-action="Index">
+                                View Users
+                            </a>
+
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        }
+        else
+        {
+            @* Client може да работи само със свои сертификати *@
+            <div class="d-flex flex-wrap gap-2 mb-4">
+
+                <a asp-controller="Certificates"
+                   asp-action="Create"
+                   class="btn btn-primary">
+                    + Upload Certificate
+                </a>
+
+                <a asp-controller="Certificates"
+                   asp-action="Index"
+                   class="btn btn-outline-primary">
+                    My Certificates
+                </a>
+
+            </div>
+        }
+
+        @* 4. Статистика за сертификатите *@
+        <h3 class="mb-3">Certificate Overview</h3>
+
+        <div class="row g-3 mb-4">
+
+            <div class="col-6 col-lg-3">
+                <div class="card h-100">
+                    <div class="card-body">
+
+                        <p class="text-muted">Total</p>
+
+                        <h2>@Model.CertificateCount</h2>
+
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-6 col-lg-3">
+                <div class="card h-100">
+                    <div class="card-body">
+
+                        <p class="text-muted">Pending</p>
+
+                        <h2>@Model.PendingCount</h2>
+
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-6 col-lg-3">
+                <div class="card h-100">
+                    <div class="card-body">
+
+                        <p class="text-muted">Approved</p>
+
+                        <h2>@Model.ApprovedCount</h2>
+
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-6 col-lg-3">
+                <div class="card h-100">
+                    <div class="card-body">
+
+                        <p class="text-muted">Rejected</p>
+
+                        <h2>@Model.RejectedCount</h2>
+
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        @* 5. Последни подадени сертификати *@
+        <div class="d-flex justify-content-between
+                        align-items-center mb-3">
+
+            <h3 class="mb-0">Recent Certificates</h3>
+
+            <a asp-controller="Certificates"
+               asp-action="Index"
+               class="btn btn-outline-secondary btn-sm">
+                View All
+            </a>
+
+        </div>
+
+        @if (!Model.RecentCertificates.Any())
+        {
+            <div class="alert alert-info">
+                No certificate submissions available yet.
+            </div>
+        }
+        else
+        {
+            <div class="table-responsive">
+
+                <table class="table table-striped table-hover">
+
+                    <thead class="table-dark">
+                        <tr>
+
+                            @if (Model.IsAdmin)
+                            {
+                                <th>Organization</th>
+                            }
+
+                            <th>Hostname</th>
+                            <th>Status</th>
+                            <th>Submitted At</th>
+                            <th>Valid To</th>
+                            <th>Actions</th>
+
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        @foreach (var certificate in Model.RecentCertificates)
+                        {
+                            @* Избираме цвят според статуса *@
+                            string badgeClass = certificate.Status switch
+                            {
+                                CertificateStatus.Approved => "bg-success",
+                                CertificateStatus.Rejected => "bg-danger",
+                                CertificateStatus.Submitted => "bg-primary",
+                                CertificateStatus.UnderReview => "bg-info text-dark",
+                                _ => "bg-secondary"
+                            };
+
+                            <tr>
+
+                                @if (Model.IsAdmin)
+                                {
+                                    <td>
+                                        @certificate.OrganizationName
+                                    </td>
+                                }
+
+                                <td>@certificate.Hostname</td>
+
+                                <td>
+                                    <span class="badge @badgeClass">
+                                        @certificate.Status
+                                    </span>
+                                </td>
+
+                                <td>
+                                    @certificate.CreatedAtUtc.ToString("dd.MM.yyyy HH:mm")
+                                    <small class="text-muted">UTC</small>
+                                </td>
+
+                                <td>
+                                    @(certificate.ValidToUtc?.ToString("dd.MM.yyyy") ?? "N/A")
+                                </td>
+
+                                <td>
+                                    <a asp-controller="Certificates"
+                                       asp-action="Details"
+                                       asp-route-id="@certificate.Id"
+                                       class="btn btn-sm btn-outline-primary">
+                                        Details
+                                    </a>
+                                </td>
+
+                            </tr>
+                        }
+                    </tbody>
+
+                </table>
+            </div>
+        }
+    }
+
 </div>
