@@ -53,26 +53,13 @@
         </div>
     }
 
-    @* Административни действия *@
+    @* Управление на организации *@
     <div class="mb-4">
-
-        <a asp-action="Create"
-           class="btn btn-primary">
-            + Create Organization
-        </a>
-
-        <a asp-controller="Users"
+        <a asp-controller="Organizations"
            asp-action="Create"
-           class="btn btn-outline-primary">
-            + Create Client User
+           class="btn btn-primary">
+            Create Organization
         </a>
-
-        <a asp-controller="Users"
-           asp-action="Index"
-           class="btn btn-outline-secondary">
-            View Users
-        </a>
-
     </div>
 
     @* Един GET формуляр за всички филтри в таблицата *@

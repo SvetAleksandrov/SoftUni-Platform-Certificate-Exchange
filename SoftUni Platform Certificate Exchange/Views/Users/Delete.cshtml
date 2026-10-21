@@ -1,0 +1,65 @@
+﻿@model SoftUni_Platform_Certificate_Exchange.ViewModels.UserDeleteViewModel
+
+@{
+    ViewData["Title"] = "Delete Client User";
+}
+
+<div class="container mt-4">
+
+    <h2>Delete Client User</h2>
+
+    @if (Model.HasCertificateHistory)
+    {
+        <div class="alert alert-warning">
+            This user cannot be deleted because certificate
+            submission or review history exists.
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-danger">
+            Are you sure you want to permanently delete
+            this client user?
+        </div>
+    }
+
+    <div class="card mb-4">
+        <div class="card-body">
+
+            <p>
+                <strong>Name:</strong> @Model.FullName
+            </p>
+
+            <p>
+                <strong>Email:</strong> @Model.Email
+            </p>
+
+            <p>
+                <strong>Organization:</strong>
+                @Model.OrganizationName
+            </p>
+
+        </div>
+    </div>
+
+    @* Потвърждение с POST и Anti-Forgery защита *@
+    <form asp-controller="Users"
+          asp-action="Delete"
+          asp-route-id="@Model.Id"
+          method="post">
+
+        @if (!Model.HasCertificateHistory)
+        {
+            <button type="submit" class="btn btn-danger">
+                Delete User
+            </button>
+        }
+
+        <a asp-controller="Users"
+           asp-action="Index"
+           class="btn btn-secondary">
+            Cancel
+        </a>
+    </form>
+
+</div>

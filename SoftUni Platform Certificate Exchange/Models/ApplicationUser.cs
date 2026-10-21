@@ -1,6 +1,7 @@
 ﻿namespace SoftUni_Platform_Certificate_Exchange.Models;
 
 using Microsoft.AspNetCore.Identity;
+using System.ComponentModel.DataAnnotations;
 
 // Наследяваме IdentityUser за готовите функции на ASP.NET Identity
 public class ApplicationUser : IdentityUser
@@ -16,6 +17,15 @@ public class ApplicationUser : IdentityUser
     // true  = потребителят трябва да смени паролата
     // false = потребителят може да използва приложението
     public bool MustChangePassword { get; set; } = false;
+
+
+    // Отдел, в който работи потребителят
+    [StringLength(100)]
+    public string? Department { get; set; }
+
+    // Длъжност на потребителя
+    [StringLength(100)]
+    public string? JobTitle { get; set; }
 
 
     // Идентификатор на клиентската организация (Foreign Key)

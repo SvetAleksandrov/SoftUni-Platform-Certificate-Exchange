@@ -1,0 +1,109 @@
+﻿@model SoftUni_Platform_Certificate_Exchange.ViewModels.UserEditViewModel
+
+@{
+    ViewData["Title"] = "Edit Client User";
+}
+
+<div class="container mt-4">
+
+    <h2>Edit Client User</h2>
+
+    <p class="text-muted">
+        Update the user's contact and organization details.
+    </p>
+
+    <form asp-controller="Users"
+          asp-action="Edit"
+          asp-route-id="@Model.Id"
+          method="post">
+
+        <input asp-for="Id" type="hidden" />
+
+        <div asp-validation-summary="ModelOnly"
+             class="text-danger mb-3"></div>
+
+        <div class="row">
+
+            <div class="col-md-6 mb-3">
+                <label asp-for="FirstName" class="form-label"></label>
+                <input asp-for="FirstName" class="form-control" />
+                <span asp-validation-for="FirstName"
+                      class="text-danger"></span>
+            </div>
+
+            <div class="col-md-6 mb-3">
+                <label asp-for="LastName" class="form-label"></label>
+                <input asp-for="LastName" class="form-control" />
+                <span asp-validation-for="LastName"
+                      class="text-danger"></span>
+            </div>
+
+            <div class="col-md-6 mb-3">
+                <label asp-for="Email" class="form-label"></label>
+                <input asp-for="Email"
+                       type="email"
+                       class="form-control" />
+                <span asp-validation-for="Email"
+                      class="text-danger"></span>
+            </div>
+
+            <div class="col-md-6 mb-3">
+                <label asp-for="PhoneNumber" class="form-label">
+                    Phone
+                </label>
+                <input asp-for="PhoneNumber"
+                       type="tel"
+                       class="form-control" />
+                <span asp-validation-for="PhoneNumber"
+                      class="text-danger"></span>
+            </div>
+
+            <div class="col-md-6 mb-3">
+                <label asp-for="Department" class="form-label"></label>
+                <input asp-for="Department" class="form-control" />
+                <span asp-validation-for="Department"
+                      class="text-danger"></span>
+            </div>
+
+            <div class="col-md-6 mb-3">
+                <label asp-for="JobTitle" class="form-label">
+                    Job Title
+                </label>
+                <input asp-for="JobTitle" class="form-control" />
+                <span asp-validation-for="JobTitle"
+                      class="text-danger"></span>
+            </div>
+
+            <div class="col-md-12 mb-3">
+                <label asp-for="OrganizationId" class="form-label">
+                    Organization
+                </label>
+
+                <select asp-for="OrganizationId"
+                        asp-items="ViewBag.Organizations"
+                        class="form-select">
+                    <option value="">-- Select Organization --</option>
+                </select>
+
+                <span asp-validation-for="OrganizationId"
+                      class="text-danger"></span>
+            </div>
+
+        </div>
+
+        <button type="submit" class="btn btn-primary">
+            Save Changes
+        </button>
+
+        <a asp-controller="Users"
+           asp-action="Index"
+           class="btn btn-secondary">
+            Cancel
+        </a>
+
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

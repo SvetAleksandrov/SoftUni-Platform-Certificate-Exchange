@@ -19,4 +19,15 @@ public class UserListItemViewModel
 
     // Име на организацията за визуализация
     public string? OrganizationName { get; set; }
+
+
+    // Телефон от ASP.NET Identity
+    public string? PhoneNumber { get; set; }
+
+    // Име на отдела
+    public string? Department { get; set; }
+
+    // Име на позицията
+    public string? JobTitle { get; set; }
+
 }

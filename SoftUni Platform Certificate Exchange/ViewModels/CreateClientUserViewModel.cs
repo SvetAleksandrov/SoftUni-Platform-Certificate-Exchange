@@ -22,4 +22,19 @@ public class CreateClientUserViewModel
     [Required]
     [EmailAddress]
     public string Email { get; set; } = string.Empty;
+
+
+    // Телефонен номер
+    [Phone]
+    [StringLength(30)]
+    public string? PhoneNumber { get; set; }
+
+    // Отдел
+    [StringLength(100)]
+    public string? Department { get; set; }
+
+    // Длъжност
+    [StringLength(100)]
+    public string? JobTitle { get; set; }
+
 }
