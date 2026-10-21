@@ -1,6 +1,359 @@
 ﻿@{
-    ViewData["Title"] = "Privacy Policy";
+    ViewData["Title"] = "Security & Privacy";
 }
-<h1>@ViewData["Title"]</h1>
 
-<p>Use this page to detail your site's privacy policy.</p>
+<div class="container py-4">
+
+    @* Заглавие и предназначение на страницата *@
+    <div class="bg-light rounded-4 p-4 p-md-5 mb-4">
+        <h1 class="fw-bold">Security & Privacy</h1>
+
+        <p class="lead mb-2">
+            Secure sharing and management of public
+            SSL/TLS certificates.
+        </p>
+
+        <p class="text-muted mb-0">
+            Learn how SecureCert Portal processes certificate
+            submissions, protects access and handles user data.
+        </p>
+    </div>
+
+    @* 1. Предназначение на платформата *@
+    <section class="mb-4">
+        <h3>1. About SecureCert Portal</h3>
+
+        <p>
+            SecureCert Portal is a web application for
+            submitting, validating and reviewing public
+            SSL/TLS certificates between organizations.
+        </p>
+
+        <p>
+            Client organizations can submit certificates
+            and track their review status.
+            Authorized administrators manage organizations,
+            client accounts and certificate reviews.
+        </p>
+    </section>
+
+    <hr />
+
+    @* 2. Разрешени файлови формати *@
+    <section class="mb-4">
+        <h3>2. Accepted Certificate Files</h3>
+
+        <p>
+            The portal accepts public X.509 certificates
+            in the following formats:
+        </p>
+
+        <div class="row g-3 mb-3">
+
+            <div class="col-md-4">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h5>.cer</h5>
+                        <p class="text-muted mb-0">
+                            Public certificate file.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h5>.crt</h5>
+                        <p class="text-muted mb-0">
+                            Public certificate file.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h5>.pem</h5>
+                        <p class="text-muted mb-0">
+                            PEM-encoded public certificate.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <p>
+            <strong>Maximum file size:</strong> 256 KB.
+        </p>
+
+        <div class="alert alert-info">
+            A certificate must be submitted for the hostname
+            entered in the upload form.
+        </div>
+    </section>
+
+    <hr />
+
+    @* 3. Техническа проверка на сертификатите *@
+    <section class="mb-4">
+        <h3>3. Certificate Validation</h3>
+
+        <p>
+            Before a certificate is accepted, SecureCert
+            Portal performs technical validation.
+        </p>
+
+        <ul>
+            <li>
+                Checks the supported file format and file size.
+            </li>
+            <li>
+                Parses the public X.509 certificate.
+            </li>
+            <li>
+                Checks the certificate validity period.
+            </li>
+            <li>
+                Checks whether the certificate matches
+                the submitted hostname.
+            </li>
+            <li>
+                Checks server authentication usage
+                when the relevant extension is present.
+            </li>
+            <li>
+                Extracts certificate metadata, including
+                subject, issuer, thumbprint and validity dates.
+            </li>
+        </ul>
+
+        <div class="alert alert-warning">
+            <strong>Important:</strong>
+            Technical validation does not establish that the
+            issuing Certificate Authority is trusted.
+            The current version does not perform complete
+            certificate chain or revocation validation.
+        </div>
+    </section>
+
+    <hr />
+
+    @* 4. Защита на частните ключове *@
+    <section class="mb-4">
+        <h3>4. Private Key Protection</h3>
+
+        <div class="alert alert-danger">
+            <strong>Never upload a private key.</strong>
+
+            Do not submit private key files, passwords,
+            credentials or certificate packages containing
+            private key material.
+        </div>
+
+        <p>
+            The portal is intended for public certificates
+            only. Private keys must remain under the control
+            of their legitimate owner.
+        </p>
+
+        <p>
+            Files such as .key, .pfx and .p12 are not
+            supported certificate submission formats.
+        </p>
+    </section>
+
+    <hr />
+
+    @* 5. Роли и достъп *@
+    <section class="mb-4">
+        <h3>5. User Access & Authorization</h3>
+
+        <div class="table-responsive">
+            <table class="table table-bordered">
+
+                <thead class="table-light">
+                    <tr>
+                        <th>Role</th>
+                        <th>Access</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    <tr>
+                        <td><strong>Administrator</strong></td>
+                        <td>
+                            Manages organizations, client
+                            users and certificate reviews.
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>Client</strong></td>
+                        <td>
+                            Uploads and manages permitted
+                            certificate submissions belonging
+                            to their assigned organization.
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td><strong>Public Visitor</strong></td>
+                        <td>
+                            Can access public information
+                            and the login page.
+                        </td>
+                    </tr>
+                </tbody>
+
+            </table>
+        </div>
+
+        <p>
+            Client accounts are created by an administrator.
+            Newly created clients must change their
+            temporary password before accessing the portal.
+        </p>
+    </section>
+
+    <hr />
+
+    @* 6. Съхранявани данни *@
+    <section class="mb-4">
+        <h3>6. Data Processing & Storage</h3>
+
+        <p>
+            To provide its functionality, SecureCert Portal
+            stores information such as:
+        </p>
+
+        <ul>
+            <li>
+                Organization names and registration numbers.
+            </li>
+            <li>
+                User names, email addresses, phone numbers,
+                departments and job titles when provided.
+            </li>
+            <li>
+                Certificate files and related metadata.
+            </li>
+            <li>
+                Hostnames, submission dates and statuses.
+            </li>
+            <li>
+                Administrative review decisions and comments.
+            </li>
+        </ul>
+
+        <p>
+            User authentication is managed through
+            ASP.NET Core Identity. Passwords are stored
+            as password hashes, not in plaintext.
+        </p>
+
+        <p>
+            Uploaded certificate files are stored separately
+            from the application's public web directory.
+            Certificate metadata and user information
+            are maintained in the application database.
+        </p>
+    </section>
+
+    <hr />
+
+    @* 7. Ограничения и срокове за съхранение *@
+    <section class="mb-4">
+        <h3>7. Important Limitations</h3>
+
+        <p>
+            A successful upload or administrative approval
+            should not be interpreted as independent
+            confirmation that a certificate is trusted
+            by browsers or operating systems.
+        </p>
+
+        <p>
+            Certificate submission and review records are
+            retained according to the application's
+            implemented management rules.
+            An automatic retention and deletion schedule
+            has not yet been configured.
+        </p>
+
+        <p>
+            Users should contact the portal administrator
+            for requests concerning their account,
+            stored information or access.
+        </p>
+    </section>
+
+    <hr />
+
+    @* 8. Насоки за сигурна работа *@
+    <section class="mb-4">
+        <h3>8. Security Recommendations</h3>
+
+        <ul>
+            <li>
+                Access the portal using its HTTPS address.
+            </li>
+            <li>
+                Keep account credentials confidential.
+            </li>
+            <li>
+                Never share a temporary password in a URL.
+            </li>
+            <li>
+                Upload public certificates only.
+            </li>
+            <li>
+                Verify the hostname before submission.
+            </li>
+            <li>
+                Sign out when using a shared computer.
+            </li>
+        </ul>
+    </section>
+
+    <hr />
+
+    @* 9. Връзка към администратора *@
+    <section class="mb-4">
+        <h3>9. Support</h3>
+
+        <p>
+            For account access issues, certificate submission
+            questions or data-related requests,
+            please contact your SecureCert Portal administrator.
+        </p>
+
+        <div class="d-flex flex-wrap gap-2">
+
+            <a asp-controller="Home"
+               asp-action="Index"
+               class="btn btn-outline-secondary">
+                Back to Home
+            </a>
+
+            @if (User.Identity?.IsAuthenticated != true)
+            {
+                <a asp-controller="Account"
+                   asp-action="Login"
+                   class="btn btn-primary">
+                    Sign In
+                </a>
+            }
+
+        </div>
+    </section>
+
+    <p class="text-muted small">
+        This page describes the current application
+        functionality and security guidelines.
+        It is not a complete legal privacy notice.
+    </p>
+
+</div>

@@ -22,8 +22,13 @@
                         <li class="nav-item">
                             <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
                         </li>
+                        @* Публична информация за сигурността *@
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+                            <a class="nav-link text-dark"
+                               asp-controller="Home"
+                               asp-action="Privacy">
+                                Security &amp; Privacy
+                            </a>
                         </li>
 
                         @* Показваме Organizations само на администратори *@
@@ -98,7 +103,15 @@
 
     <footer class="border-top footer text-muted">
         <div class="container">
-            &copy; 2026 - SoftUni_Platform_Certificate_Exchange - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+
+            @* Footer на SecureCert Portal *@
+            &copy; 2026 - SecureCert Portal -
+
+            <a asp-controller="Home"
+               asp-action="Privacy">
+                Security &amp; Privacy
+            </a>
+
         </div>
     </footer>
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
