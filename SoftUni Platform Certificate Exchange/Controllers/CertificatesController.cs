@@ -69,13 +69,10 @@ public class CertificatesController : Controller
     public async Task<IActionResult> Index(
     string? organizationSearch,
     string? hostnameSearch,
-    DateTime? validFromStart,
-    DateTime? validFromEnd,
-    DateTime? validToStart,
-    DateTime? validToEnd,
+    DateTime? validFromDate,
+    DateTime? validToDate,
     string statusSearch = "all",
-    DateTime? submittedFrom = null,
-    DateTime? submittedTo = null,
+    DateTime? submittedDate = null,
     string groupBy = "none",
     string sort = "submitted_desc")
     {
@@ -115,41 +112,30 @@ public class CertificatesController : Controller
                 c.TargetHostname.Contains(hostnameSearch));
         }
 
-        // 5. FILTER: Valid From - период на начало на валидността
-        if (validFromStart.HasValue)
+        // 5. VALID TO: филтрираме по датата на изтичане (UTC)
+
+        if (validFromDate.HasValue)
         {
-            var start = validFromStart.Value.Date;
+            var start = validFromDate.Value.Date;
+            var end = start.AddDays(1);
 
             query = query.Where(c =>
-                c.NotBeforeUtc >= start);
+                c.NotBeforeUtc >= start &&
+                c.NotBeforeUtc < end);
         }
 
-        if (validFromEnd.HasValue)
+
+        // 6 VALID TO: филтрираме по датата на изтичане (UTC)
+        if (validToDate.HasValue)
         {
-            var end = validFromEnd.Value.Date;
+            var start = validToDate.Value.Date;
+            var end = start.AddDays(1);
 
             query = query.Where(c =>
-                c.NotBeforeUtc.HasValue &&
-                c.NotBeforeUtc.Value.Date <= end);
+                c.NotAfterUtc >= start &&
+                c.NotAfterUtc < end);
         }
 
-        // 6. FILTER: Valid To - период на изтичане
-        if (validToStart.HasValue)
-        {
-            var start = validToStart.Value.Date;
-
-            query = query.Where(c =>
-                c.NotAfterUtc >= start);
-        }
-
-        if (validToEnd.HasValue)
-        {
-            var end = validToEnd.Value.Date;
-
-            query = query.Where(c =>
-                c.NotAfterUtc.HasValue &&
-                c.NotAfterUtc.Value.Date <= end);
-        }
 
         // 7. FILTER: Status - използваме CertificateStatus enum
         statusSearch = statusSearch?.Trim() ?? "all";
@@ -177,22 +163,18 @@ public class CertificatesController : Controller
             statusSearch = "all";
         }
 
-        // 8. FILTER: Submitted At - период на подаване
-        if (submittedFrom.HasValue)
+
+        // 8 SUBMITTED AT: всички заявки от избрания UTC ден
+        if (submittedDate.HasValue)
         {
-            var start = submittedFrom.Value.Date;
+            var start = submittedDate.Value.Date;
+            var end = start.AddDays(1);
 
             query = query.Where(c =>
-                c.CreatedAtUtc >= start);
+                c.CreatedAtUtc >= start &&
+                c.CreatedAtUtc < end);
         }
 
-        if (submittedTo.HasValue)
-        {
-            var end = submittedTo.Value.Date;
-
-            query = query.Where(c =>
-                c.CreatedAtUtc.Date <= end);
-        }
 
         // 9. GROUP BY: Валидираме разрешените колони
         groupBy = groupBy?.Trim().ToLowerInvariant() ?? "none";
@@ -277,25 +259,16 @@ public class CertificatesController : Controller
         ViewBag.OrganizationSearch = organizationSearch;
         ViewBag.HostnameSearch = hostnameSearch;
 
-        ViewBag.ValidFromStart =
-            validFromStart?.ToString("yyyy-MM-dd") ?? "";
 
-        ViewBag.ValidFromEnd =
-            validFromEnd?.ToString("yyyy-MM-dd") ?? "";
+        // Запазваме избраните дати за Razor View
+        ViewBag.ValidFromDate =
+            validFromDate?.ToString("yyyy-MM-dd") ?? "";
 
-        ViewBag.ValidToStart =
-            validToStart?.ToString("yyyy-MM-dd") ?? "";
+        ViewBag.ValidToDate =
+            validToDate?.ToString("yyyy-MM-dd") ?? "";
 
-        ViewBag.ValidToEnd =
-            validToEnd?.ToString("yyyy-MM-dd") ?? "";
-
-        ViewBag.StatusSearch = statusSearch;
-
-        ViewBag.SubmittedFrom =
-            submittedFrom?.ToString("yyyy-MM-dd") ?? "";
-
-        ViewBag.SubmittedTo =
-            submittedTo?.ToString("yyyy-MM-dd") ?? "";
+        ViewBag.SubmittedDate =
+            submittedDate?.ToString("yyyy-MM-dd") ?? "";
 
         ViewBag.GroupBy = groupBy;
         ViewBag.Sort = sort;

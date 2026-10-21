@@ -11,28 +11,20 @@
     string hostnameSearch =
         ViewBag.HostnameSearch as string ?? "";
 
-    string validFromStart =
-        ViewBag.ValidFromStart as string ?? "";
-
-    string validFromEnd =
-        ViewBag.ValidFromEnd as string ?? "";
-
-    string validToStart =
-        ViewBag.ValidToStart as string ?? "";
-
-    string validToEnd =
-        ViewBag.ValidToEnd as string ?? "";
-
     string statusSearch =
         ViewBag.StatusSearch as string ?? "all";
 
-    string submittedFrom =
-        ViewBag.SubmittedFrom as string ?? "";
+    string validFromDate =
+        ViewBag.ValidFromDate as string ?? "";
 
-    string submittedTo =
-        ViewBag.SubmittedTo as string ?? "";
+    string validToDate =
+        ViewBag.ValidToDate as string ?? "";
+
+    string submittedDate =
+        ViewBag.SubmittedDate as string ?? "";
 
     string groupBy = ViewBag.GroupBy as string ?? "none";
+
     string sort = ViewBag.Sort as string ?? "submitted_desc";
 
     var certificates = Model.ToList();
@@ -285,45 +277,29 @@
                                    aria-label="Search hostname" />
                         </th>
 
-                        @* Valid From: начална и крайна дата *@
+
+                        @* Valid From - една дата, автоматично филтриране *@
                         <th>
-                            <div class="d-flex flex-column gap-1">
-
-                                <input type="date"
-                                       name="validFromStart"
-                                       value="@validFromStart"
-                                       class="form-control form-control-sm"
-                                       aria-label="Valid from start date"
-                                       title="From date" />
-
-                                <input type="date"
-                                       name="validFromEnd"
-                                       value="@validFromEnd"
-                                       class="form-control form-control-sm"
-                                       aria-label="Valid from end date"
-                                       title="To date" />
-                            </div>
+                            <input type="date"
+                                   name="validFromDate"
+                                   value="@validFromDate"
+                                   class="form-control form-control-sm"
+                                   style="min-width: 150px;"
+                                   aria-label="Filter Valid From" />
                         </th>
 
-                        @* Valid To: период на изтичане *@
+
+
+                        @* Valid To - една дата, автоматично филтриране *@
                         <th>
-                            <div class="d-flex flex-column gap-1">
-
-                                <input type="date"
-                                       name="validToStart"
-                                       value="@validToStart"
-                                       class="form-control form-control-sm"
-                                       aria-label="Expiry period start"
-                                       title="From date" />
-
-                                <input type="date"
-                                       name="validToEnd"
-                                       value="@validToEnd"
-                                       class="form-control form-control-sm"
-                                       aria-label="Expiry period end"
-                                       title="To date" />
-                            </div>
+                            <input type="date"
+                                   name="validToDate"
+                                   value="@validToDate"
+                                   class="form-control form-control-sm"
+                                   style="min-width: 150px;"
+                                   aria-label="Filter Valid To" />
                         </th>
+
 
                         @* Status - избор от enum стойностите *@
                         <th>
@@ -347,33 +323,19 @@
                             </select>
                         </th>
 
-                        @* Submitted At: период на подаване *@
+
+                        @* Submitted At - една дата, автоматично филтриране *@
                         <th>
-                            <div class="d-flex flex-column gap-1">
-
-                                <input type="date"
-                                       name="submittedFrom"
-                                       value="@submittedFrom"
-                                       class="form-control form-control-sm"
-                                       aria-label="Submitted from date"
-                                       title="From date" />
-
-                                <input type="date"
-                                       name="submittedTo"
-                                       value="@submittedTo"
-                                       class="form-control form-control-sm"
-                                       aria-label="Submitted to date"
-                                       title="To date" />
-                            </div>
+                            <input type="date"
+                                   name="submittedDate"
+                                   value="@submittedDate"
+                                   class="form-control form-control-sm"
+                                   style="min-width: 150px;"
+                                   aria-label="Filter Submitted At" />
                         </th>
 
-                        @* Бутонът прилага всички текущи филтри *@
-                        <th>
-                            <button type="submit"
-                                    class="btn btn-sm btn-outline-primary">
-                                Search
-                            </button>
-                        </th>
+                       @* Филтрите вече се прилагат автоматично *@
+                        <th></th>
 
                     </tr>
                 </thead>
