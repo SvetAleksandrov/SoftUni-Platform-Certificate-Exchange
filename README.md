@@ -1,11 +1,12 @@
-
 # SecureCert Portal
 
-**SecureCert Portal** is an ASP.NET Core MVC web application for exchanging and reviewing **public SSL/TLS (X.509) certificates** between client organizations and an internal administrator.
+**SecureCert Portal is my response to a real business problem in the organization where I work.** As part of our day-to-day operations, we need to obtain public SSL/TLS certificates from clients so that they can be checked, tracked, and used in the configuration of internal business systems. I am working on a more structured way to handle this process instead of relying on emails, attachments, and manual follow-ups.
 
-The application was developed as a coursework project for **SoftUni — ASP.NET Fundamentals (September 2026)**. It demonstrates MVC architecture, Entity Framework Core, SQL Server, ASP.NET Core Identity, role-based authorization, form validation, file handling, and a multi-organization data model.
+The goal is to give clients a dedicated place to submit certificates and give our internal teams a clear view of **which organization submitted which certificate, for what hostname, when it was received, and what decision was made**. This should make the exchange more consistent, traceable, and easier to manage as the service grows.
 
-> **Project scope:** This is an educational prototype, not a production-ready certificate-management or public-key infrastructure (PKI) solution.
+**The same business problem became the foundation of my SoftUni ASP.NET Fundamentals coursework project (September 2026).** The current repository contains the first working version developed within the course's scope. It implements the core organization, user, certificate submission, validation, and review workflows, but **does not yet contain every integration required for deployment in our corporate environment**.
+
+> **Implementation status:** Core portal functionality is implemented as a coursework version. Integration with the corporate **Active Directory (AD)**, **automatic registration emails through the corporate mail gateway**, and **possible support for additional certificate file types** are planned enhancements, not features available in the current version.
 
 ## 1. Business workflow
 
