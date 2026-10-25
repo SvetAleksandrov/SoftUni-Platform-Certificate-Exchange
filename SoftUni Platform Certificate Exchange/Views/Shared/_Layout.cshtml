@@ -10,42 +10,60 @@
 </head>
 <body>
     <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
-            <div class="container-fluid">
-                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">SecureCert Portal</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="Toggle navigation">
+
+        @{
+            // Определяме коя функционална област е активна
+            var activeController =
+            ViewContext.RouteData.Values["controller"]?.ToString();
+        }
+
+        <nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom mb-3">
+            <div class="portal-shell portal-header-inner">
+
+                @* Лого - вляво *@
+                <a class="navbar-brand fw-semibold"
+                   asp-controller="Home"
+                   asp-action="Index">
+                    SecureCert Portal
+                </a>
+
+                @* Мобилно меню *@
+                <button class="navbar-toggler"
+                        type="button"
+                        data-bs-toggle="collapse"
+                        data-bs-target="#portalNavigation"
+                        aria-controls="portalNavigation"
+                        aria-expanded="false"
+                        aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
                 </button>
-                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                    <ul class="navbar-nav flex-grow-1">
+
+                <div class="collapse navbar-collapse portal-navbar-collapse"
+                     id="portalNavigation">
+
+                    @* Основните бутони са центрирани *@
+                    <ul class="navbar-nav portal-nav-links">
+
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
-                        </li>
-                        @* Публична информация за сигурността *@
-                        <li class="nav-item">
-                            <a class="nav-link text-dark"
+                            <a class="nav-link portal-nav-link portal-nav-home @(activeController == "Home" ? "is-active" : "")"
                                asp-controller="Home"
-                               asp-action="Privacy">
-                                Security &amp; Privacy
+                               asp-action="Index">
+                                Home
                             </a>
                         </li>
 
-                        @* Показваме Organizations само на администратори *@
                         @if (User.IsInRole("Admin"))
                         {
                             <li class="nav-item">
-                                <a class="nav-link text-dark"
+                                <a class="nav-link portal-nav-link portal-nav-organizations @(activeController == "Organizations" ? "is-active" : "")"
                                    asp-controller="Organizations"
-                                   asp-action="Index">Organizations</a>
+                                   asp-action="Index">
+                                    Organizations
+                                </a>
                             </li>
-                        }
 
-                        @* Users меню само за администратори *@
-                        @if (User.IsInRole("Admin"))
-                        {
                             <li class="nav-item">
-                                <a class="nav-link text-dark"
+                                <a class="nav-link portal-nav-link portal-nav-users @(activeController == "Users" ? "is-active" : "")"
                                    asp-controller="Users"
                                    asp-action="Index">
                                     Users
@@ -53,12 +71,10 @@
                             </li>
                         }
 
-
-                        @* Certificates е достъпно за Admin и Client *@
                         @if (User.IsInRole("Admin") || User.IsInRole("Client"))
                         {
                             <li class="nav-item">
-                                <a class="nav-link text-dark"
+                                <a class="nav-link portal-nav-link portal-nav-certificates @(activeController == "Certificates" ? "is-active" : "")"
                                    asp-controller="Certificates"
                                    asp-action="Index">
                                     Certificates
@@ -66,43 +82,52 @@
                             </li>
                         }
 
+                    </ul>
 
-                        @* Показваме Login или Logout според сесията *@
+                    @* Вход и изход - вдясно *@
+                    <div class="portal-account">
+
                         @if (User.Identity?.IsAuthenticated == true)
                         {
-                            <li class="nav-item">
-                                <form asp-controller="Account"
-                                      asp-action="Logout"
-                                      method="post">
-                                    @Html.AntiForgeryToken()
-                                    <button type="submit" class="nav-link btn btn-link">
-                                        Logout
-                                    </button>
-                                </form>
-                            </li>
+                            <form asp-controller="Account"
+                                  asp-action="Logout"
+                                  method="post">
+
+                                @Html.AntiForgeryToken()
+
+                                <button type="submit"
+                                        class="btn btn-outline-danger btn-sm">
+                                    Logout
+                                </button>
+                            </form>
                         }
                         else
                         {
-                            <li class="nav-item">
-                                <a class="nav-link text-dark"
-                                   asp-controller="Account"
-                                   asp-action="Login">Login</a>
-                            </li>
+                            <a asp-controller="Account"
+                               asp-action="Login"
+                               class="btn btn-primary btn-sm">
+                                Login
+                            </a>
                         }
 
-                    </ul>
+                    </div>
+
                 </div>
             </div>
         </nav>
+
     </header>
-    <div class="container">
+
+    @* Общ контейнер с адаптивна ширина и странични отстояния *@
+    <div class="portal-shell">
         <main role="main" class="pb-3">
             @RenderBody()
         </main>
     </div>
 
+
     <footer class="border-top footer text-muted">
-        <div class="container">
+        <div class="portal-shell">
 
             @* Footer на SecureCert Portal *@
             &copy; 2026 - SecureCert Portal -

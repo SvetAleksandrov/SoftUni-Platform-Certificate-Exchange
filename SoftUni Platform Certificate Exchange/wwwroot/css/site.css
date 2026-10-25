@@ -20,3 +20,155 @@ html {
 body {
   margin-bottom: 60px;
 }
+
+
+/* Глобална ширина за всички страници на SecureCert Portal */
+main[role="main"] {
+    width: 100%;
+    max-width: 100%;
+}
+
+    /* Премахваме Bootstrap max-width от основните View контейнери */
+    main[role="main"] > .container {
+        width: 100%;
+        max-width: 100%;
+    }
+
+    /* Не допускаме съдържанието да разширява основния layout */
+    main[role="main"] > * {
+        min-width: 0;
+    }
+
+
+/* Централен контейнер за всички страници */
+.portal-shell {
+    width: calc(100% - clamp(32px, 6vw, 112px));
+    max-width: 1680px;
+    margin-left: auto;
+    margin-right: auto;
+    box-sizing: border-box;
+}
+
+/* Вложените Bootstrap контейнери не ограничават ширината */
+main[role="main"] > .container,
+main[role="main"] > .container-fluid {
+    width: 100%;
+    max-width: 100%;
+    padding-left: 0;
+    padding-right: 0;
+}
+
+/* Малки екрани */
+@media (max-width: 576px) {
+    .portal-shell {
+        width: calc(100% - 24px);
+    }
+}
+
+
+/* Header - адаптивно позициониране */
+.portal-header-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    position: relative;
+    min-height: 64px;
+}
+
+/* Основни навигационни бутони */
+.portal-nav-link {
+    border-radius: 8px;
+    padding: 0.48rem 0.85rem !important;
+    font-size: 0.9rem;
+    font-weight: 600;
+    white-space: nowrap;
+    border: 1px solid transparent;
+    transition: background-color 0.2s, border-color 0.2s;
+}
+
+/* Home - синьо */
+.portal-nav-home {
+    --nav-color: #1d4ed8;
+    --nav-background: #eff6ff;
+}
+
+/* Organizations - лилаво */
+.portal-nav-organizations {
+    --nav-color: #7c3aed;
+    --nav-background: #f5f3ff;
+}
+
+/* Users - зелено */
+.portal-nav-users {
+    --nav-color: #047857;
+    --nav-background: #ecfdf5;
+}
+
+/* Certificates - оранжево */
+.portal-nav-certificates {
+    --nav-color: #c2410c;
+    --nav-background: #fff7ed;
+}
+
+/* Неактивен бутон - светъл фон */
+.navbar .portal-nav-link {
+    color: var(--nav-color) !important;
+    background-color: var(--nav-background);
+}
+
+    /* Мишката е върху бутона */
+    .navbar .portal-nav-link:hover,
+    .navbar .portal-nav-link:focus-visible {
+        border-color: var(--nav-color);
+    }
+
+    /* Активна страница - плътен фон */
+    .navbar .portal-nav-link.is-active {
+        color: #ffffff !important;
+        background-color: var(--nav-color);
+    }
+
+/* Центриране на основната навигация на Desktop */
+@media (min-width: 992px) {
+
+    .portal-nav-links {
+        position: absolute;
+        left: 50%;
+        transform: translateX(-50%);
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .portal-account {
+        margin-left: auto;
+    }
+}
+
+/* При по-малки екрани използваме Bootstrap Collapse */
+@media (max-width: 991.98px) {
+
+    .portal-navbar-collapse {
+        width: 100%;
+        padding-top: 0.75rem;
+        padding-bottom: 0.75rem;
+    }
+
+    .portal-nav-links {
+        position: static;
+        transform: none;
+        display: flex;
+        flex-direction: column;
+        gap: 0.4rem;
+    }
+
+    .portal-account {
+        margin-top: 0.75rem;
+    }
+
+    .portal-nav-link {
+        display: block;
+    }
+}
