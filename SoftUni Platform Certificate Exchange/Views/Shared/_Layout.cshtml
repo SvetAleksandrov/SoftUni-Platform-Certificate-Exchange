@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - SoftUni_Platform_Certificate_Exchange</title>
+    <title>@ViewData["Title"] - SecureCert Portal</title>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/SoftUni_Platform_Certificate_Exchange.styles.css" asp-append-version="true" />
@@ -22,6 +22,7 @@
 
                 @* Лого - вляво *@
                 <a class="navbar-brand fw-semibold"
+                   asp-area=""
                    asp-controller="Home"
                    asp-action="Index">
                     SecureCert Portal
@@ -46,6 +47,7 @@
 
                         <li class="nav-item">
                             <a class="nav-link portal-nav-link portal-nav-home @(activeController == "Home" ? "is-active" : "")"
+                               asp-area=""
                                asp-controller="Home"
                                asp-action="Index">
                                 Home
@@ -56,6 +58,7 @@
                         {
                             <li class="nav-item">
                                 <a class="nav-link portal-nav-link portal-nav-organizations @(activeController == "Organizations" ? "is-active" : "")"
+                                   asp-area=""
                                    asp-controller="Organizations"
                                    asp-action="Index">
                                     Organizations
@@ -64,6 +67,7 @@
 
                             <li class="nav-item">
                                 <a class="nav-link portal-nav-link portal-nav-users @(activeController == "Users" ? "is-active" : "")"
+                                   asp-area=""
                                    asp-controller="Users"
                                    asp-action="Index">
                                     Users
@@ -75,6 +79,7 @@
                         {
                             <li class="nav-item">
                                 <a class="nav-link portal-nav-link portal-nav-certificates @(activeController == "Certificates" ? "is-active" : "")"
+                                   asp-area=""
                                    asp-controller="Certificates"
                                    asp-action="Index">
                                     Certificates
@@ -85,11 +90,13 @@
                     </ul>
 
                     @* Вход и изход - вдясно *@
+
                     <div class="portal-account">
 
                         @if (User.Identity?.IsAuthenticated == true)
                         {
-                            <form asp-controller="Account"
+                            <form asp-area=""
+                                  asp-controller="Account"
                                   asp-action="Logout"
                                   method="post">
 
@@ -103,7 +110,8 @@
                         }
                         else
                         {
-                            <a asp-controller="Account"
+                            <a asp-area=""
+                               asp-controller="Account"
                                asp-action="Login"
                                class="btn btn-primary btn-sm">
                                 Login
@@ -111,6 +119,7 @@
                         }
 
                     </div>
+
 
                 </div>
             </div>
@@ -133,6 +142,7 @@
             &copy; 2026 - SecureCert Portal -
 
             <a asp-controller="Home"
+               asp-area=""
                asp-action="Privacy">
                 Security &amp; Privacy
             </a>

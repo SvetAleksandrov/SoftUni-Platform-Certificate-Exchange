@@ -111,6 +111,17 @@ app.Use(async (context, next) =>
 // Проверяваме правата за достъп
 app.UseAuthorization();
 
+
+// Маршрутизация към административните Areas
+app.MapControllerRoute(
+    name: "areas",
+    pattern: "{area:exists}/{controller=Overview}/{action=Index}/{id?}");
+
+// Съществуващата маршрутизация остава непроменена
+app.MapControllerRoute(
+    name: "default",
+    pattern: "{controller=Home}/{action=Index}/{id?}");
+
 // Определяме стандартния MVC маршрут
 app.MapControllerRoute(
     name: "default",
