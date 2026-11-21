@@ -1,4 +1,4 @@
-﻿namespace SoftUni_Platform_Certificate_Exchange.Controllers;
+﻿namespace SoftUni_Platform_Certificate_Exchange.Areas.Admin.Controllers;
 
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -9,6 +9,7 @@ using SoftUni_Platform_Certificate_Exchange.ViewModels;
 
 
 // Достъп само за потребители с роля Admin
+[Area("Admin")]
 [Authorize(Roles = "Admin")]
 public class OrganizationsController : Controller
 {

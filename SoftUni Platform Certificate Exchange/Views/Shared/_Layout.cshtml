@@ -56,14 +56,16 @@
 
                         @if (User.IsInRole("Admin"))
                         {
+
                             <li class="nav-item">
                                 <a class="nav-link portal-nav-link portal-nav-organizations @(activeController == "Organizations" ? "is-active" : "")"
-                                   asp-area=""
+                                   asp-area="Admin"
                                    asp-controller="Organizations"
                                    asp-action="Index">
                                     Organizations
                                 </a>
                             </li>
+
 
                             <li class="nav-item">
                                 <a class="nav-link portal-nav-link portal-nav-users @(activeController == "Users" ? "is-active" : "")"

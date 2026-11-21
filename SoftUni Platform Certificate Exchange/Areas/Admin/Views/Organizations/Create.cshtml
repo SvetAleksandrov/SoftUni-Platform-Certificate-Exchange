@@ -14,6 +14,7 @@
 
     @* Формуляр за създаване на организация *@
     <form asp-controller="Organizations"
+          asp-area=""
           asp-action="Create"
           method="post">
 
@@ -50,6 +51,7 @@
 
         @* Връщане към списъка *@
         <a asp-controller="Organizations"
+           asp-area=""
            asp-action="Index"
            class="btn btn-secondary">
             Cancel
