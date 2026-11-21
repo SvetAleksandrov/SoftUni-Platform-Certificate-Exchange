@@ -3,6 +3,7 @@
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using SoftUni_Platform_Certificate_Exchange.Models;
+using System.Reflection.Emit;
 
 // Основен клас за комуникация с базата данни
 public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
@@ -25,11 +26,24 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<CertificateReview> CertificateReviews { get; set; } = null!;
 
 
+    // История на действията със сертификатите
+    public DbSet<CertificateAuditEvent> CertificateAuditEvents { get; set; } = null!;
+
+
+
     // Конфигурираме връзките между Entity Models
     protected override void OnModelCreating(ModelBuilder builder)
     {
         // Запазваме стандартните настройки на ASP.NET Identity
         base.OnModelCreating(builder);
+
+        // Запазваме историята и при изтриване на сертификат
+        builder.Entity<CertificateAuditEvent>()
+            .HasOne(e => e.CertificateSubmission)
+            .WithMany()
+            .HasForeignKey(e => e.CertificateSubmissionId)
+            .OnDelete(DeleteBehavior.SetNull);
+
 
         // Забраняваме изтриване на организация с сертификати
         builder.Entity<CertificateSubmission>()

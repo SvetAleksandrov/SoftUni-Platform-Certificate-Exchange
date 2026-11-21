@@ -244,6 +244,47 @@ namespace SoftUni_Platform_Certificate_Exchange.Migrations
                     b.ToTable("AspNetUsers", (string)null);
                 });
 
+            modelBuilder.Entity("SoftUni_Platform_Certificate_Exchange.Models.CertificateAuditEvent", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int?>("CertificateSubmissionId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Details")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<int>("EventType")
+                        .HasColumnType("int");
+
+                    b.Property<int>("OrganizationId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("PerformedByUserId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("TargetHostname")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CertificateSubmissionId");
+
+                    b.ToTable("CertificateAuditEvents");
+                });
+
             modelBuilder.Entity("SoftUni_Platform_Certificate_Exchange.Models.CertificateReview", b =>
                 {
                     b.Property<int>("Id")
@@ -419,6 +460,16 @@ namespace SoftUni_Platform_Certificate_Exchange.Migrations
                         .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("Organization");
+                });
+
+            modelBuilder.Entity("SoftUni_Platform_Certificate_Exchange.Models.CertificateAuditEvent", b =>
+                {
+                    b.HasOne("SoftUni_Platform_Certificate_Exchange.Models.CertificateSubmission", "CertificateSubmission")
+                        .WithMany()
+                        .HasForeignKey("CertificateSubmissionId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("CertificateSubmission");
                 });
 
             modelBuilder.Entity("SoftUni_Platform_Certificate_Exchange.Models.CertificateReview", b =>
