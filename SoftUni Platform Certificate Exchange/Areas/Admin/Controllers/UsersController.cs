@@ -12,6 +12,7 @@ using SoftUni_Platform_Certificate_Exchange.Services;
 
 
 // Само Admin може да създава потребители
+[Area("Admin")]
 [Authorize(Roles = "Admin")]
 public class UsersController : Controller
 {
