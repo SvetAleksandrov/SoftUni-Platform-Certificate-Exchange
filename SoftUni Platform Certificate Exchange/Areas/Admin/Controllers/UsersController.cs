@@ -1,4 +1,4 @@
-﻿namespace SoftUni_Platform_Certificate_Exchange.Controllers;
+﻿namespace SoftUni_Platform_Certificate_Exchange.Areas.Admin.Controllers;
 
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -90,9 +90,9 @@ public class UsersController : Controller
                 StringComparison.OrdinalIgnoreCase);
 
             query = query.Where(u =>
-                (u.Organization != null &&
-                 u.Organization.Name.Contains(organizationSearch)) ||
-                (matchesInternal && u.OrganizationId == null));
+                u.Organization != null &&
+                 u.Organization.Name.Contains(organizationSearch) ||
+                matchesInternal && u.OrganizationId == null);
         }
 
         // Разрешени стойности за Group By
