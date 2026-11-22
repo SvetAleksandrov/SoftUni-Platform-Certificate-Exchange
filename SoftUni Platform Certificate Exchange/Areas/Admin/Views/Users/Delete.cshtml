@@ -43,7 +43,8 @@
     </div>
 
     @* Потвърждение с POST и Anti-Forgery защита *@
-    <form asp-controller="Users"
+    <form asp-area="Admin"
+          asp-controller="Users"
           asp-action="Delete"
           asp-route-id="@Model.Id"
           method="post">
@@ -55,7 +56,8 @@
             </button>
         }
 
-        <a asp-controller="Users"
+        <a asp-area="Admin"
+           asp-controller="Users"
            asp-action="Index"
            class="btn btn-secondary">
             Cancel

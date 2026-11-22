@@ -93,7 +93,8 @@
     }
 
     <div class="mb-4">
-        <a asp-controller="Users"
+        <a asp-area="Admin"
+           asp-controller="Users"
            asp-action="Create"
            class="btn btn-primary">
             Create Client User
@@ -103,7 +104,7 @@
     @* Общ формуляр за Live Search, Sorting и Group By *@
     <form id="userFilters"
           data-live-filters
-          action="@Url.Action("Index", "Users")"
+          action="@Url.Action("Index", "Users", new { area = "Admin" })"
           method="get">
 
         <input type="hidden"
@@ -136,7 +137,8 @@
                     }
                 </select>
 
-                <a asp-controller="Users"
+                <a asp-area="Admin"
+                   asp-controller="Users"
                    asp-action="Index"
                    class="btn btn-sm btn-outline-secondary">
                     Reset
@@ -255,14 +257,16 @@
                                     @if (user.OrganizationId.HasValue)
                                     {
                                         <div class="d-flex gap-1">
-                                            <a asp-controller="Users"
+                                            <a asp-area="Admin"
+                                               asp-controller="Users"
                                                asp-action="Edit"
                                                asp-route-id="@user.Id"
                                                class="btn btn-sm btn-outline-primary">
                                                 Edit
                                             </a>
 
-                                            <a asp-controller="Users"
+                                            <a asp-area="Admin"
+                                               asp-controller="Users"
                                                asp-action="Delete"
                                                asp-route-id="@user.Id"
                                                class="btn btn-sm btn-outline-danger">

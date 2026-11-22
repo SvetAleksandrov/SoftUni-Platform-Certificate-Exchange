@@ -107,29 +107,32 @@ app.Use(async (context, next) =>
     await next();
 });
 
-
 // Проверяваме правата за достъп
 app.UseAuthorization();
 
-
-
-// Основен маршрут за всички MVC Areas
+// Основна маршрутизация за MVC Areas
 app.MapControllerRoute(
     name: "areas",
     pattern: "{area:exists}/{controller=Overview}/{action=Index}/{id?}");
 
-// Съвместимост със старите Organizations URL адреси
+// Запазваме старите Organizations URL адреси
 app.MapAreaControllerRoute(
     name: "legacy_organizations",
     areaName: "Admin",
     pattern: "Organizations/{action=Index}/{id?}",
     defaults: new { controller = "Organizations" });
 
-// Стандартен маршрут за останалото приложение
+// Запазваме старите Users URL адреси
+app.MapAreaControllerRoute(
+    name: "legacy_users",
+    areaName: "Admin",
+    pattern: "Users/{action=Index}/{id?}",
+    defaults: new { controller = "Users" });
+
+// Стандартен маршрут за останалите Controllers
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
-
 
 // Стартираме приложението
 app.Run();

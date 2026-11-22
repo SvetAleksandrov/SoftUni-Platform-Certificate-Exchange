@@ -12,7 +12,8 @@
         Update the user's contact and organization details.
     </p>
 
-    <form asp-controller="Users"
+    <form asp-area="Admin" 
+          asp-controller="Users"
           asp-action="Edit"
           asp-route-id="@Model.Id"
           method="post">
@@ -95,7 +96,8 @@
             Save Changes
         </button>
 
-        <a asp-controller="Users"
+        <a asp-area="Admin"
+           asp-controller="Users"
            asp-action="Index"
            class="btn btn-secondary">
             Cancel

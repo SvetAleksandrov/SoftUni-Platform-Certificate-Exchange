@@ -284,9 +284,11 @@
                                 </td>
 
                                 <td>
-                                    <a asp-action="Details"
+                                    <a asp-area="Admin"
+                                       asp-controller="Organizations"
+                                       asp-action="Details"
                                        asp-route-id="@organization.Id"
-                                       class="btn btn-sm btn-outline-info">
+                                       class="btn btn-sm btn-outline-primary">
                                         Users
                                     </a>
 

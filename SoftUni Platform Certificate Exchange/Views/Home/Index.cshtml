@@ -126,7 +126,8 @@
                     Manage Organizations
                 </a>
 
-                <a asp-controller="Users"
+                <a asp-area="Admin"
+                   asp-controller="Users"
                    asp-action="Index"
                    class="btn btn-outline-primary">
                     Manage Users
@@ -171,7 +172,8 @@
 
                             <h2>@Model.AssignedUsersCount</h2>
 
-                            <a asp-controller="Users"
+                            <a asp-area="Admin"
+                               asp-controller="Users"
                                asp-action="Index">
                                 View Users
                             </a>

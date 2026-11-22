@@ -27,7 +27,8 @@
     @* Списък с потребителите *@
     <h4>Assigned Users (@Model.Users.Count)</h4>
 
-    <a asp-controller="Users"
+    <a asp-area="Admin"
+       asp-controller="Users"
        asp-action="Create"
        class="btn btn-primary mb-3">
         + Create Client User
