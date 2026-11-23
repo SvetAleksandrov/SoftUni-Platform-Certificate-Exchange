@@ -99,7 +99,7 @@
 
                         @if (User.Identity?.IsAuthenticated == true)
                         {
-                            <form asp-area=""
+                            <form asp-area="Admin"
                                   asp-controller="Account"
                                   asp-action="Logout"
                                   method="post">
@@ -114,7 +114,7 @@
                         }
                         else
                         {
-                            <a asp-area=""
+                            <a asp-area="Admin"
                                asp-controller="Account"
                                asp-action="Login"
                                class="btn btn-primary btn-sm">

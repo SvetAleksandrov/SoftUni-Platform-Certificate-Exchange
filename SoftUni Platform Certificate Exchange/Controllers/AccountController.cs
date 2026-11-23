@@ -177,7 +177,7 @@ if (result.Succeeded)
         await _signInManager.RefreshSignInAsync(user);
 
         // Клиентът вече може да използва Certificates
-        return RedirectToAction("Index", "Certificates");
+        return RedirectToAction("Index", "Certificates", new { area = "" });
     }
 
 }

@@ -101,7 +101,7 @@
     @* Общ GET формуляр - запазва всички критерии *@
     <form id="certificateFilters"
           data-live-filters
-          action="@Url.Action("Index", "Certificates")"
+          action="@Url.Action("Index", "Certificates", new { area = "" })"
           method="get">
 
         @* Стойността се променя при натискане на стрелка *@
