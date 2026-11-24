@@ -88,11 +88,28 @@
                 throw new Error("Filter results not found.");
             }
 
-            // Подменяме само редовете в таблицата
+
+            // Подменяме редовете в таблицата
             tableBody.innerHTML = updatedBody.innerHTML;
 
             // Обновяваме броя намерени записи
             resultCount.textContent = updatedCount.textContent;
+
+            // Обновяваме заглавията за Sorting в User Management
+            if (form.id === "userFilters") {
+                const currentHeader = form.querySelector(
+                    "table thead tr.table-dark"
+                );
+
+                const updatedHeader = updatedForm.querySelector(
+                    "table thead tr.table-dark"
+                );
+
+                if (currentHeader && updatedHeader) {
+                    currentHeader.innerHTML = updatedHeader.innerHTML;
+                }
+            }
+
 
             // Актуализираме URL, без презареждане
             window.history.replaceState(

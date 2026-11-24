@@ -9,6 +9,7 @@ using SoftUni_Platform_Certificate_Exchange.Data;
 using SoftUni_Platform_Certificate_Exchange.Models;
 using SoftUni_Platform_Certificate_Exchange.ViewModels;
 using SoftUni_Platform_Certificate_Exchange.Services;
+using SoftUni_Platform_Certificate_Exchange.Helpers;
 
 
 // Само Admin може да създава потребители
@@ -47,13 +48,13 @@ public class UsersController : Controller
         var query = _context.Users.AsNoTracking().AsQueryable();
 
         // Премахваме излишните интервали
-        firstNameSearch = firstNameSearch?.Trim() ?? "";
-        lastNameSearch = lastNameSearch?.Trim() ?? "";
-        emailSearch = emailSearch?.Trim() ?? "";
-        phoneSearch = phoneSearch?.Trim() ?? "";
-        departmentSearch = departmentSearch?.Trim() ?? "";
-        jobTitleSearch = jobTitleSearch?.Trim() ?? "";
-        organizationSearch = organizationSearch?.Trim() ?? "";
+        firstNameSearch = FilterInputHelper.Search(firstNameSearch);
+        lastNameSearch = FilterInputHelper.Search(lastNameSearch);
+        emailSearch = FilterInputHelper.Search(emailSearch);
+        phoneSearch = FilterInputHelper.Search(phoneSearch);
+        departmentSearch = FilterInputHelper.Search(departmentSearch);
+        jobTitleSearch = FilterInputHelper.Search(jobTitleSearch);
+        organizationSearch = FilterInputHelper.Search(organizationSearch);
 
         // Независими филтри - комбинират се чрез AND
         if (firstNameSearch.Length > 0)
@@ -97,7 +98,17 @@ public class UsersController : Controller
         }
 
         // Разрешени стойности за Group By
-        groupBy = groupBy?.Trim().ToLowerInvariant() ?? "none";
+        groupBy = FilterInputHelper.Option(
+            groupBy,
+            "none",
+            "none",
+            "firstname",
+            "lastname",
+            "email",
+            "phone",
+            "department",
+            "jobtitle",
+            "organization");    
 
         string[] allowedGroups =
         {
@@ -108,22 +119,26 @@ public class UsersController : Controller
         if (!allowedGroups.Contains(groupBy))
             groupBy = "none";
 
-        // Разрешени стойности за Sorting
-        sort = sort?.Trim().ToLowerInvariant() ?? "lastname_asc";
 
-        string[] allowedSorts =
-        {
-        "firstname_asc", "firstname_desc",
-        "lastname_asc", "lastname_desc",
-        "email_asc", "email_desc",
-        "phone_asc", "phone_desc",
-        "department_asc", "department_desc",
-        "jobtitle_asc", "jobtitle_desc",
-        "organization_asc", "organization_desc"
-    };
+        // Проверяваме разрешените стойности за Sorting
+        sort = FilterInputHelper.Option(
+            sort,
+            "lastname_asc",
+            "firstname_asc",
+            "firstname_desc",
+            "lastname_asc",
+            "lastname_desc",
+            "email_asc",
+            "email_desc",
+            "phone_asc",
+            "phone_desc",
+            "department_asc",
+            "department_desc",
+            "jobtitle_asc",
+            "jobtitle_desc",
+            "organization_asc",
+            "organization_desc");
 
-        if (!allowedSorts.Contains(sort))
-            sort = "lastname_asc";
 
         // Сортиране в SQL Server
         var orderedQuery = sort switch
