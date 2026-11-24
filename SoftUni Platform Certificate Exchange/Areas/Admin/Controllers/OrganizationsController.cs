@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using SoftUni_Platform_Certificate_Exchange.Data;
 using SoftUni_Platform_Certificate_Exchange.Models;
 using SoftUni_Platform_Certificate_Exchange.ViewModels;
+using SoftUni_Platform_Certificate_Exchange.Helpers;
 
 
 // Достъп само за потребители с роля Admin
@@ -37,7 +38,7 @@ public class OrganizationsController : Controller
             .AsQueryable();
 
         // 2. SEARCH: Organization
-        organizationSearch = organizationSearch?.Trim() ?? "";
+        organizationSearch = FilterInputHelper.Search(organizationSearch);
 
         if (!string.IsNullOrWhiteSpace(organizationSearch))
         {
@@ -47,7 +48,7 @@ public class OrganizationsController : Controller
         }
 
         // 3. SEARCH: Registration
-        registrationSearch = registrationSearch?.Trim() ?? "";
+        registrationSearch = FilterInputHelper.Search(registrationSearch);
 
         if (!string.IsNullOrWhiteSpace(registrationSearch))
         {
@@ -58,8 +59,14 @@ public class OrganizationsController : Controller
         }
 
         // 4. FILTER: Status
-        statusSearch = statusSearch?.Trim().ToLowerInvariant() ?? "all";
 
+        // Разрешени стойности на Status
+        statusSearch = FilterInputHelper.Option(
+            statusSearch,
+            "all",
+            "all",
+            "active",
+            "inactive");
         if (statusSearch == "active")
         {
             query = query.Where(o => o.IsActive);
@@ -68,44 +75,30 @@ public class OrganizationsController : Controller
         {
             query = query.Where(o => !o.IsActive);
         }
-        else
-        {
-            statusSearch = "all";
-        }
 
         // 5. GROUP BY: Проверка на избраната колона
-        groupBy = groupBy?.Trim().ToLowerInvariant() ?? "none";
+        // Валидиране на Group By
+        groupBy = FilterInputHelper.Option(
+            groupBy,
+            "none",
+            "none",
+            "organization",
+            "registration",
+            "status");
 
-        string[] allowedGroups =
-        {
-        "none",
-        "organization",
-        "registration",
-        "status"
-    };
-
-        if (!allowedGroups.Contains(groupBy))
-        {
-            groupBy = "none";
-        }
 
         // 6. SORTING: Проверка на избраната колона и посока
-        sort = sort?.Trim().ToLowerInvariant() ?? "organization_asc";
+        // Разрешени стойности за Sorting
+        sort = FilterInputHelper.Option(
+            sort,
+            "organization_asc",
+            "organization_asc",
+            "organization_desc",
+            "registration_asc",
+            "registration_desc",
+            "status_asc",
+            "status_desc");
 
-        string[] allowedSorts =
-        {
-        "organization_asc",
-        "organization_desc",
-        "registration_asc",
-        "registration_desc",
-        "status_asc",
-        "status_desc"
-    };
-
-        if (!allowedSorts.Contains(sort))
-        {
-            sort = "organization_asc";
-        }
 
         // 7. Сортираме според избраната колона
         var orderedQuery = sort switch
