@@ -95,8 +95,9 @@
             // Обновяваме броя намерени записи
             resultCount.textContent = updatedCount.textContent;
 
-            // Обновяваме заглавията за Sorting в User Management
-            if (form.id === "userFilters") {
+            // Обновяваме стрелките за Sorting в Users и Certificates
+            if (form.id === "userFilters" || form.id === "certificateFilters") {
+
                 const currentHeader = form.querySelector(
                     "table thead tr.table-dark"
                 );

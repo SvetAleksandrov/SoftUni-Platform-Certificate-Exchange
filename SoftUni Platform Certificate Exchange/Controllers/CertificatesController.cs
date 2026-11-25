@@ -10,6 +10,7 @@ using SoftUni_Platform_Certificate_Exchange.Models;
 using SoftUni_Platform_Certificate_Exchange.ViewModels;
 using SoftUni_Platform_Certificate_Exchange.Services.Interfaces;
 using System.Text.RegularExpressions;
+using SoftUni_Platform_Certificate_Exchange.Helpers;
 
 
 // Достъп до Controller за Admin и Client
@@ -64,8 +65,6 @@ public class CertificatesController : Controller
 
     // GET: /Certificates
     [HttpGet]
-
-    [HttpGet]
     public async Task<IActionResult> Index(
     string? organizationSearch,
     string? hostnameSearch,
@@ -95,7 +94,7 @@ public class CertificatesController : Controller
         }
 
         // 3. SEARCH: Organization
-        organizationSearch = organizationSearch?.Trim() ?? "";
+        organizationSearch = FilterInputHelper.Search(organizationSearch);
 
         if (!string.IsNullOrWhiteSpace(organizationSearch))
         {
@@ -104,7 +103,7 @@ public class CertificatesController : Controller
         }
 
         // 4. SEARCH: Hostname
-        hostnameSearch = hostnameSearch?.Trim() ?? "";
+        hostnameSearch = FilterInputHelper.Search(hostnameSearch);
 
         if (!string.IsNullOrWhiteSpace(hostnameSearch))
         {
@@ -138,7 +137,7 @@ public class CertificatesController : Controller
 
 
         // 7. FILTER: Status - използваме CertificateStatus enum
-        statusSearch = statusSearch?.Trim() ?? "all";
+        statusSearch = FilterInputHelper.Search(statusSearch);
 
         if (!statusSearch.Equals(
             "all", StringComparison.OrdinalIgnoreCase))
@@ -163,7 +162,6 @@ public class CertificatesController : Controller
             statusSearch = "all";
         }
 
-
         // 8 SUBMITTED AT: всички заявки от избрания UTC ден
         if (submittedDate.HasValue)
         {
@@ -175,39 +173,34 @@ public class CertificatesController : Controller
                 c.CreatedAtUtc < end);
         }
 
+        // 9. GROUP BY: Проверяваме разрешените стойности
+        groupBy = FilterInputHelper.Option(
+            groupBy,
+            "none",
+            "none",
+            "organization",
+            "hostname",
+            "validfrom",
+            "validto",
+            "status",
+            "submitted");
 
-        // 9. GROUP BY: Валидираме разрешените колони
-        groupBy = groupBy?.Trim().ToLowerInvariant() ?? "none";
-
-        string[] allowedGroups =
-        {
-        "none",
-        "organization",
-        "hostname",
-        "validfrom",
-        "validto",
-        "status",
-        "submitted"
-    };
-
-        if (!allowedGroups.Contains(groupBy))
-            groupBy = "none";
-
-        // 10. SORTING: Валидираме разрешените критерии
-        sort = sort?.Trim().ToLowerInvariant() ?? "submitted_desc";
-
-        string[] allowedSorts =
-        {
-        "organization_asc", "organization_desc",
-        "hostname_asc", "hostname_desc",
-        "validfrom_asc", "validfrom_desc",
-        "validto_asc", "validto_desc",
-        "status_asc", "status_desc",
-        "submitted_asc", "submitted_desc"
-    };
-
-        if (!allowedSorts.Contains(sort))
-            sort = "submitted_desc";
+        // 10. SORTING: Проверяваме разрешените стойности
+        sort = FilterInputHelper.Option(
+            sort,
+            "submitted_desc",
+            "organization_asc",
+            "organization_desc",
+            "hostname_asc",
+            "hostname_desc",
+            "validfrom_asc",
+            "validfrom_desc",
+            "validto_asc",
+            "validto_desc",
+            "status_asc",
+            "status_desc",
+            "submitted_asc",
+            "submitted_desc");
 
         // 11. Сортираме в SQL Server
         var orderedQuery = sort switch
@@ -258,6 +251,7 @@ public class CertificatesController : Controller
         // 13. Връщаме критериите обратно към Razor
         ViewBag.OrganizationSearch = organizationSearch;
         ViewBag.HostnameSearch = hostnameSearch;
+        ViewBag.StatusSearch = statusSearch;
 
 
         // Запазваме избраните дати за Razor View
