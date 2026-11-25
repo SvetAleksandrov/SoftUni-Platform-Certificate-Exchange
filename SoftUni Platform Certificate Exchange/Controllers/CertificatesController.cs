@@ -29,17 +29,22 @@ public class CertificatesController : Controller
     // Logger за технически събития и грешки
     private readonly ILogger<CertificatesController> _logger;
 
+    // Услуга за проверка на бизнес правилата при одобрение на сертификати
+    private readonly ICertificateReviewRules _reviewRules;
+
     // Dependency Injection на всички необходими услуги
     public CertificatesController(
         ApplicationDbContext context,
         ICertificateValidationService validator,
         UserManager<ApplicationUser> userManager,
-        ILogger<CertificatesController> logger)
+        ILogger<CertificatesController> logger,
+        ICertificateReviewRules reviewRules)
     {
         _context = context;
         _validator = validator;
         _userManager = userManager;
         _logger = logger;
+        _reviewRules = reviewRules;
     }
 
     // Връща организацията на текущия Client потребител
@@ -541,8 +546,7 @@ public class CertificatesController : Controller
             return NotFound();
 
         // Позволяваме преглед само на подадени сертификати
-        if (certificate.Status != CertificateStatus.Submitted &&
-            certificate.Status != CertificateStatus.UnderReview)
+        if (!_reviewRules.CanReview(certificate.Status))
         {
             return BadRequest("Certificate is not available for review.");
         }
@@ -581,8 +585,7 @@ public class CertificatesController : Controller
             return NotFound();
 
         // Не позволяваме повторно одобрение или отказ
-        if (certificate.Status != CertificateStatus.Submitted &&
-            certificate.Status != CertificateStatus.UnderReview)
+        if (!_reviewRules.CanReview(certificate.Status))
         {
             return Conflict("Certificate has already been processed.");
         }
@@ -625,11 +628,9 @@ public class CertificatesController : Controller
             ReviewedAtUtc = DateTime.UtcNow
         };
 
-        // Актуализираме бизнес статуса на сертификата
-        certificate.Status = model.Decision.Value ==
-            CertificateReviewDecision.Approved
-                ? CertificateStatus.Approved
-                : CertificateStatus.Rejected;
+        // Прилагаме бизнес правилата за новия статус
+        certificate.Status = _reviewRules.GetResultingStatus(
+            model.Decision!.Value);
 
         // Добавяме решението в базата
         _context.CertificateReviews.Add(review);

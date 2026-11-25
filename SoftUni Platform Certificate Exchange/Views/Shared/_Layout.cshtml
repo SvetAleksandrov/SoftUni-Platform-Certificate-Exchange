@@ -95,11 +95,12 @@
 
                     @* Вход и изход - вдясно *@
 
+
                     <div class="portal-account">
 
                         @if (User.Identity?.IsAuthenticated == true)
                         {
-                            <form asp-area="Admin"
+                            <form asp-area=""
                                   asp-controller="Account"
                                   asp-action="Logout"
                                   method="post">
@@ -114,7 +115,7 @@
                         }
                         else
                         {
-                            <a asp-area="Admin"
+                            <a asp-area=""
                                asp-controller="Account"
                                asp-action="Login"
                                class="btn btn-primary btn-sm">
@@ -123,7 +124,6 @@
                         }
 
                     </div>
-
 
                 </div>
             </div>

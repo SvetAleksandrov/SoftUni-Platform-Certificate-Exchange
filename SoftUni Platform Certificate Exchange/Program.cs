@@ -40,6 +40,11 @@ builder.Services.AddScoped<
     ICertificateValidationService,
     CertificateValidationService>();
 
+// Бизнес правила за одобрение и отказ на сертификати
+builder.Services.AddScoped<
+    ICertificateReviewRules,
+    CertificateReviewRules>();
+
 // Създаваме приложението
 var app = builder.Build();
 
