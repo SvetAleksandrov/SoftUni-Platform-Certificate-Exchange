@@ -42,7 +42,9 @@ public class UsersController : Controller
     string? jobTitleSearch,
     string? organizationSearch,
     string groupBy = "none",
-    string sort = "lastname_asc")
+    string sort = "lastname_asc",
+    int page = 1)
+
     {
         // Подготвяме заявката към Identity потребителите
         var query = _context.Users.AsNoTracking().AsQueryable();
@@ -171,10 +173,28 @@ public class UsersController : Controller
             _ => query.OrderBy(u => u.LastName)
         };
 
+        // PAGINATION: 10 потребители на страница
+        const int pageSize = 10;
+
+        // Общ брой потребители след филтрирането
+        var totalCount = await query.CountAsync();
+
+        // Изчисляваме броя страници
+        var totalPages = Math.Max(
+            1,
+            (int)Math.Ceiling(totalCount / (double)pageSize));
+
+        // Предпазваме се от невалидна страница
+        page = Math.Clamp(page, 1, totalPages);
+
+
         // Извличаме колоните за таблицата
         var users = await orderedQuery
             .ThenBy(u => u.Id)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
             .Select(u => new UserListItemViewModel
+
             {
                 Id = u.Id,
                 FirstName = u.FirstName,
@@ -199,6 +219,10 @@ public class UsersController : Controller
         ViewBag.OrganizationSearch = organizationSearch;
         ViewBag.GroupBy = groupBy;
         ViewBag.Sort = sort;
+        ViewBag.CurrentPage = page;
+        ViewBag.TotalPages = totalPages;
+        ViewBag.TotalCount = totalCount;
+
 
         return View(users);
     }

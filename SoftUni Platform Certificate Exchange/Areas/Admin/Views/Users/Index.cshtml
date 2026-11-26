@@ -17,6 +17,12 @@
 
     var users = Model.ToList();
 
+    // Информация за страниците
+    int currentPage = ViewBag.CurrentPage;
+    int totalPages = ViewBag.TotalPages;
+    int totalCount = ViewBag.TotalCount;
+
+
     // Колоните в желаната последователност
     var columns = new[]
     {
@@ -116,17 +122,21 @@
                     align-items-center mb-3 flex-wrap gap-2">
 
             <span>
-                Showing <strong data-live-count>@users.Count</strong>
+                Showing
+                <strong data-live-count>@users.Count of @totalCount</strong>
                 user(s)
             </span>
 
             <div class="d-flex align-items-center gap-2">
 
-                <label for="groupBy" class="mb-0">Group By</label>
+                <label for="groupBy" class="mb-0 text-nowrap">
+                    Group By
+                </label>
 
                 <select name="groupBy"
                         id="groupBy"
-                        class="form-select form-select-sm">
+                        class="form-select form-select-sm flex-shrink-0"
+                        style="width: 170px;">
 
                     @foreach (var option in groupOptions)
                     {
@@ -285,5 +295,60 @@
                 </tbody>
             </table>
         </div>
+
+        @* Навигация между страниците *@
+        <div data-live-pagination
+             class="d-flex justify-content-between
+            align-items-center mt-3">
+
+            <span class="text-muted">
+                Page @currentPage of @totalPages
+            </span>
+
+            <div class="btn-group">
+
+                @if (currentPage > 1)
+                {
+                    <a asp-area="Admin"
+                       asp-controller="Users"
+                       asp-action="Index"
+                       asp-route-page="@(currentPage - 1)"
+                       asp-route-firstNameSearch="@firstNameSearch"
+                       asp-route-lastNameSearch="@lastNameSearch"
+                       asp-route-emailSearch="@emailSearch"
+                       asp-route-phoneSearch="@phoneSearch"
+                       asp-route-departmentSearch="@departmentSearch"
+                       asp-route-jobTitleSearch="@jobTitleSearch"
+                       asp-route-organizationSearch="@organizationSearch"
+                       asp-route-groupBy="@groupBy"
+                       asp-route-sort="@sort"
+                       class="btn btn-outline-primary btn-sm">
+                        Previous
+                    </a>
+                }
+
+                @if (currentPage < totalPages)
+                {
+                    <a asp-area="Admin"
+                       asp-controller="Users"
+                       asp-action="Index"
+                       asp-route-page="@(currentPage + 1)"
+                       asp-route-firstNameSearch="@firstNameSearch"
+                       asp-route-lastNameSearch="@lastNameSearch"
+                       asp-route-emailSearch="@emailSearch"
+                       asp-route-phoneSearch="@phoneSearch"
+                       asp-route-departmentSearch="@departmentSearch"
+                       asp-route-jobTitleSearch="@jobTitleSearch"
+                       asp-route-organizationSearch="@organizationSearch"
+                       asp-route-groupBy="@groupBy"
+                       asp-route-sort="@sort"
+                       class="btn btn-outline-primary btn-sm">
+                        Next
+                    </a>
+                }
+
+            </div>
+        </div>
+
     </form>
 </div>

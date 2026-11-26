@@ -95,6 +95,19 @@
             // Обновяваме броя намерени записи
             resultCount.textContent = updatedCount.textContent;
 
+            // Обновяваме Pagination след Live Search
+            const currentPager = form.querySelector(
+                "[data-live-pagination]"
+            );
+
+            const updatedPager = updatedForm.querySelector(
+                "[data-live-pagination]"
+            );
+
+            if (currentPager && updatedPager) {
+                currentPager.innerHTML = updatedPager.innerHTML;
+            }
+
             // Обновяваме стрелките за Sorting в Users и Certificates
             if (form.id === "userFilters" || form.id === "certificateFilters") {
 

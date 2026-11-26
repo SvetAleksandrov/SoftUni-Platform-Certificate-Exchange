@@ -28,9 +28,11 @@ public class OrganizationsController : Controller
     public async Task<IActionResult> Index(
         string? organizationSearch,
         string? registrationSearch,
-        string statusSearch = "all",
+        string statusSearch = "all",       
         string groupBy = "none",
-        string sort = "organization_asc")
+        string sort = "organization_asc",
+        int page = 1)
+
     {
         // 1. Подготвяме заявката, без да я изпълняваме
         var query = _context.Organizations
@@ -122,11 +124,28 @@ public class OrganizationsController : Controller
             _ => query.OrderBy(o => o.Name)
         };
 
-        // 8. Изпълняваме SQL заявката
-        // ID осигурява стабилна подредба при равни стойности
+
+        // 8. PAGINATION: 10 организации на страница
+        const int pageSize = 10;
+
+        // Броим всички записи след приложените филтри
+        var totalCount = await query.CountAsync();
+
+        // Изчисляваме общия брой страници
+        var totalPages = Math.Max(
+            1,
+            (int)Math.Ceiling(totalCount / (double)pageSize));
+
+        // Ограничаваме страницата до валиден диапазон
+        page = Math.Clamp(page, 1, totalPages);
+
+        // Зареждаме само записите за текущата страница
         var organizations = await orderedQuery
             .ThenBy(o => o.Id)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
             .ToListAsync();
+
 
         // 9. Предаваме стойностите обратно към Razor View
         ViewBag.OrganizationSearch = organizationSearch;
@@ -134,6 +153,10 @@ public class OrganizationsController : Controller
         ViewBag.StatusSearch = statusSearch;
         ViewBag.GroupBy = groupBy;
         ViewBag.Sort = sort;
+        ViewBag.CurrentPage = page;
+        ViewBag.TotalPages = totalPages;
+        ViewBag.TotalCount = totalCount;
+
 
         // 10. Връщаме филтрираните резултати
         return View(organizations);
