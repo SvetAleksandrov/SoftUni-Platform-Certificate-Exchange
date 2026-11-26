@@ -28,6 +28,10 @@
     string sort = ViewBag.Sort as string ?? "submitted_desc";
 
     var certificates = Model.ToList();
+    // Информация за текущата страница
+    int currentPage = ViewBag.CurrentPage;
+    int totalPages = ViewBag.TotalPages;
+    int totalCount = ViewBag.TotalCount;
 
     // 2. Изчисляваме следващата посока за всяка колона
     string organizationNext = sort == "organization_asc"
@@ -114,7 +118,10 @@
                     align-items-center mb-3 flex-wrap gap-2">
 
             <span>
-                Showing <strong data-live-count>@certificates.Count</strong>
+                Showing
+                <strong data-live-count>
+                    @certificates.Count of @totalCount
+                </strong>
                 certificate(s)
             </span>
 
@@ -442,5 +449,58 @@
 
             </table>
         </div>
+
+        @* Навигация между страниците *@
+        <div data-live-pagination
+             class="d-flex justify-content-between
+            align-items-center mt-3">
+
+            <span class="text-muted">
+                Page @currentPage of @totalPages
+            </span>
+
+            <div class="btn-group">
+
+                @if (currentPage > 1)
+                {
+                    <a asp-area=""
+                       asp-controller="Certificates"
+                       asp-action="Index"
+                       asp-route-page="@(currentPage - 1)"
+                       asp-route-organizationSearch="@organizationSearch"
+                       asp-route-hostnameSearch="@hostnameSearch"
+                       asp-route-validFromDate="@validFromDate"
+                       asp-route-validToDate="@validToDate"
+                       asp-route-statusSearch="@statusSearch"
+                       asp-route-submittedDate="@submittedDate"
+                       asp-route-groupBy="@groupBy"
+                       asp-route-sort="@sort"
+                       class="btn btn-outline-primary btn-sm">
+                        Previous
+                    </a>
+                }
+
+                @if (currentPage < totalPages)
+                {
+                    <a asp-area=""
+                       asp-controller="Certificates"
+                       asp-action="Index"
+                       asp-route-page="@(currentPage + 1)"
+                       asp-route-organizationSearch="@organizationSearch"
+                       asp-route-hostnameSearch="@hostnameSearch"
+                       asp-route-validFromDate="@validFromDate"
+                       asp-route-validToDate="@validToDate"
+                       asp-route-statusSearch="@statusSearch"
+                       asp-route-submittedDate="@submittedDate"
+                       asp-route-groupBy="@groupBy"
+                       asp-route-sort="@sort"
+                       class="btn btn-outline-primary btn-sm">
+                        Next
+                    </a>
+                }
+
+            </div>
+        </div>
+
     </form>
 </div>

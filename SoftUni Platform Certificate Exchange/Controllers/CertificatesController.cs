@@ -78,7 +78,9 @@ public class CertificatesController : Controller
     string statusSearch = "all",
     DateTime? submittedDate = null,
     string groupBy = "none",
-    string sort = "submitted_desc")
+    string sort = "submitted_desc",
+    int page = 1)
+
     {
         // 1. Подготвяме заявката към базата данни
         var query = _context.CertificateSubmissions
@@ -247,10 +249,25 @@ public class CertificatesController : Controller
             _ => query.OrderByDescending(c => c.CreatedAtUtc)
         };
 
-        // 12. Изпълняваме заявката
-        // ID осигурява стабилен ред при равни стойности
+        // 12. PAGINATION: 10 сертификата на страница
+        const int pageSize = 10;
+
+        // Броим записите след всички филтри и проверки за достъп
+        var totalCount = await query.CountAsync();
+
+        // Изчисляваме общия брой страници
+        var totalPages = Math.Max(
+            1,
+            (int)Math.Ceiling(totalCount / (double)pageSize));
+
+        // Предпазваме се от невалидни номера на страници
+        page = Math.Clamp(page, 1, totalPages);
+
+        // Зареждаме само записите за текущата страница
         var certificates = await orderedQuery
             .ThenBy(c => c.Id)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
             .ToListAsync();
 
         // 13. Връщаме критериите обратно към Razor
@@ -271,6 +288,11 @@ public class CertificatesController : Controller
 
         ViewBag.GroupBy = groupBy;
         ViewBag.Sort = sort;
+        // Информация за Pagination
+        ViewBag.CurrentPage = page;
+        ViewBag.TotalPages = totalPages;
+        ViewBag.TotalCount = totalCount;
+
 
         return View(certificates);
     }
