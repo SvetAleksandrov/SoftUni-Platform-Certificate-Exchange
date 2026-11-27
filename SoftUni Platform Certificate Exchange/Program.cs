@@ -56,13 +56,17 @@ if (app.Environment.IsDevelopment())
         app.Configuration);
 }
 
-
-// Обработка на грешки извън Development среда
+// В Production показваме собствена страница при Exception
 if (!app.Environment.IsDevelopment())
 {
-    app.UseExceptionHandler("/Home/Error");
+    app.UseExceptionHandler("/Error/ServerError");
     app.UseHsts();
 }
+
+// Показваме собствена страница при HTTP 404
+app.UseStatusCodePagesWithReExecute(
+    "/Error/Status",
+    "?code={0}");
 
 // Пренасочване към HTTPS
 app.UseHttpsRedirection();
@@ -83,11 +87,15 @@ app.Use(async (context, next) =>
     // Позволяваме страницата за смяна и Logout
     var path = context.Request.Path.Value ?? "";
 
+    // Разрешаваме смяна на парола, Logout и страниците за грешки
     bool allowedPath =
         path.Equals("/Account/ChangePassword",
             StringComparison.OrdinalIgnoreCase) ||
         path.Equals("/Account/Logout",
+            StringComparison.OrdinalIgnoreCase) ||
+        path.StartsWith("/Error/",
             StringComparison.OrdinalIgnoreCase);
+
 
     // Проверяваме само автентикирани потребители
     if (context.User.Identity?.IsAuthenticated == true &&
