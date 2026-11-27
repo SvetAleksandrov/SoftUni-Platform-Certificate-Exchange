@@ -130,7 +130,7 @@
 
         <div class="table-responsive">
 
-            <table class="table table-striped table-hover">
+            <table class="table table-striped table-hover mb-0">
 
                 @* Заглавия със сортиране *@
                 <thead>
@@ -350,6 +350,13 @@
                         Previous
                     </a>
                 }
+                else
+                {
+                    <span class="btn btn-outline-secondary btn-sm disabled"
+                          aria-disabled="true">
+                        Previous
+                    </span>
+                }
 
                 @if (currentPage < totalPages)
                 {
@@ -365,6 +372,13 @@
                        class="btn btn-outline-primary btn-sm">
                         Next
                     </a>
+                }
+                else
+                {
+                    <span class="btn btn-outline-secondary btn-sm disabled"
+                          aria-disabled="true">
+                        Next
+                    </span>
                 }
 
             </div>

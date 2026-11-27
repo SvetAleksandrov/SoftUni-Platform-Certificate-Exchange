@@ -159,7 +159,7 @@
 
         <div class="table-responsive">
 
-            <table class="table table-striped table-hover align-middle"
+            <table class="table table-striped table-hover align-middle mb-0"
                    style="min-width: 1450px;">
 
                 <thead>
@@ -328,6 +328,13 @@
                         Previous
                     </a>
                 }
+                else
+                {
+                    <span class="btn btn-outline-secondary btn-sm disabled"
+                          aria-disabled="true">
+                        Previous
+                    </span>
+                }
 
                 @if (currentPage < totalPages)
                 {
@@ -347,6 +354,13 @@
                        class="btn btn-outline-primary btn-sm">
                         Next
                     </a>
+                }
+                else
+                {
+                    <span class="btn btn-outline-secondary btn-sm disabled"
+                          aria-disabled="true">
+                        Next
+                    </span>
                 }
 
             </div>
